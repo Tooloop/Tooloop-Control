@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tooloop Control – {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome-6.0.0/css/all.css') }}">
+</head>
+
+<body>
+    <div id="app">
+
+        <nav id="menu" role="navigation" aria-label="main navigation">
+            <div class="menu has-background-dark" v-bind:class="{'is-active': isActive}">
+
+                <button id="menu-toggle" class="button is-dark is-small is-hidden-tablet" @click="isActive = !isActive">
+                    <span class="icon">
+                        <i class="fas fa-angle-right" v-if="isActive"></i>
+                        <i class="fas fa-bars" v-if="!isActive"></i>
+                    </span>
+                </button>
+
+                <ul class="menu-list">
+                    <li>
+                        <a href="/dashboard" class="icon-text {% if page=='dashboard' %}is-active{% endif %}">
+                            <span class="icon">
+                                <i class="fas fa-dashboard"></i>
+                            </span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+
+                    <!-- <li>
+                        <a class="icon-text {% if page == 'appcenter' %}is-active{% endif %}">
+                            <span class="icon">
+                                <i class="fas fa-box"></i>
+                            </span>
+                            <span>App Center</span>
+                        </a>
+                    </li> -->
+
+                    <li>
+                        <a href="/services" class="icon-text {% if page=='services' %}is-active{% endif %}">
+                            <span class="icon">
+                                <i class="fas fa-toggle-on"></i>
+                            </span>
+                            <span>Services</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="/system" class="icon-text {% if page=='system' %}is-active{% endif %}">
+                            <span class="icon">
+                                <i class="fas fa-server"></i>
+                            </span>
+                            <span>System</span>
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+        </nav>
+
+        <nav class="navbar is-fixed-bottom is-dark is-hidden-tablet">
+            <div class="navbar-brand is-flex is-justify-content-space-around">
+                
+                <a href="/dashboard" class="navbar-item is-flex is-flex-direction-column">
+                    <span class="icon">
+                        <i class="fas fa-dashboard"></i>
+                    </span>
+                    <span class="is-size-7">Dashboard</span>
+                </a>
+                
+                <a href="/services" class="navbar-item is-flex is-flex-direction-column">
+                    <span class="icon">
+                        <i class="fas fa-toggle-on"></i>
+                    </span>
+                    <span class="is-size-7">Services</span>
+                </a>
+                
+                <a href="/system" class="navbar-item is-flex is-flex-direction-column">
+                    <span class="icon">
+                        <i class="fas fa-server"></i>
+                    </span>
+                    <span class="is-size-7">System</span>
+                </a>
+
+            </div>
+        </nav>
+
+        <main id="main">
+            {% block main %}
+            {% endblock %}
+        </main>
+
+    </div>
+
+
+    {% if environment == "production" %}
+    <script src="{{ url_for('static', filename='vendor/vue-3.2.31/vue.global.prod.js') }}"></script>
+    {% else %}
+    <script src="{{ url_for('static', filename='vendor/vue-3.2.31/vue.global.js') }}"></script>
+    {% endif %}
+    <script src="{{ url_for('static', filename='js/menu.js') }}"></script>
+
+    {% block footer_scripts %}
+    {% endblock %}
+</body>
+
+</html>

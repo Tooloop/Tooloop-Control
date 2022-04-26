@@ -1,0 +1,35 @@
+html.show-mq
+  body:after
+    display: block
+    content: 'mobile < #{$desktop}'
+    position: fixed
+    right: 0
+    bottom: 0
+    background: lightgray
+    color: $dark
+    padding: $gap * 0.1 $gap * 0.2
+    font-family: $family-monospace
+    font-size: $size-7
+    z-index: 99
+
+    +tablet
+      content: 'tablet >= #{$tablet}'
+      background: pink
+    +desktop
+      content: 'desktop >= #{$desktop}'
+      background: ligtpink
+    +widescreen
+      content: 'widescreen >= #{$widescreen}'
+      background: hotpink
+    +fullhd
+      content: 'fullhd >= #{$fullhd}'
+      background: deeppink
+
+html.show-grid
+  .container
+    border-left: 1px dashed hotpink
+    border-right: 1px dashed hotpink
+  .column
+    background-color: rgba(hotpink, 0.05)
+    border: 1px solid rgba(hotpink, 0.1)
+    border-radius: 3px

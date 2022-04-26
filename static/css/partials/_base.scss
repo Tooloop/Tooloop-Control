@@ -1,0 +1,62 @@
+// -----------------------------------------------------------------------------
+// General elements
+// -----------------------------------------------------------------------------
+
+html {
+    scroll-behavior: smooth;
+}
+
+:focus {
+    outline: none;
+}
+
+@include mobile {
+    .container {
+        max-width: 100%;
+    }
+}
+
+#app {
+    display: flex;
+    flex-flow: row;
+    min-height: 100vh;
+}
+
+#main {
+    flex-grow: 1;
+}
+
+hr {
+    height: 1px;
+}
+
+@include mobile {
+    .columns.is-reversed {
+        flex-direction: column-reverse;
+        display: flex;
+    }
+}
+
+.field-body {
+    flex-grow: 4;
+}
+
+@include mobile {
+    tr {
+        display: table;
+        width: 100%;
+        padding-bottom: 1rem;
+        padding-top: 1rem;
+    }
+    th, td {
+        display: table-row;
+    }
+    th.has-text-right {
+        text-align: left !important;
+        border-bottom: none;
+    }
+
+    table .field {
+        margin-bottom: .75rem;
+    }
+}

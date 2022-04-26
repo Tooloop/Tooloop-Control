@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block main %}
+<section class="section has-background-info">
+    <div class="container">
+
+        <h1 class="title">{{hostname}}</h1>
+
+        <div class="columns is-multiline is-reversed">
+            <div class="column is-full-tablet is-half-desktop" id="control-panel">
+                <div class="table-container">
+                    <table class="table is-fullwidth" style="background-color: transparent; line-height: 2.5;">
+
+                        <!-- Power off / reboot -->
+
+                        <tr>
+                            <th class="is-narrow has-text-right">Machine</th>
+                            <td>
+                                <div class="field has-addons">
+                                    <p class="control">
+                                        <button class="button is-light" v-on:click="reboot">
+                                            <span class="icon">
+                                                <i class="fas fa-rotate-left"></i>
+                                            </span>
+                                            <span>Reboot</span>
+                                        </button>
+                                    </p>
+                                    <p class="control">
+                                        <button class="button is-white" v-on:click="poweroff">
+                                            <span class="icon has-text-danger">
+                                                <i class="fas fa-power-off"></i>
+                                            </span>
+                                            <span>Power off</span>
+                                        </button>
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Presentation -->
+
+                        <tr>
+                            <th class="is-narrow has-text-right">Presentation</th>
+                            <td>
+                                <div class="field has-addons">
+                                    <p class="control">
+                                        <button class="button is-light" v-on:click="startPresentation">
+                                            <span class="icon has-text-success">
+                                                <i class="fas fa-play"></i>
+                                            </span>
+                                            <span>Start</span>
+                                        </button>
+                                    </p>
+                                    <p class="control">
+                                        <button class="button is-white" v-on:click="stopPresentation">
+                                            <span class="icon has-text-danger">
+                                                <i class="fas fa-stop"></i>
+                                            </span>
+                                            <span>Stop</span>
+                                        </button>
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Display -->
+
+                        <tr>
+                            <th class="is-narrow has-text-right">Display</th>
+                            <td>
+                                <div class="field">
+                                    <p class="control">
+                                        <input id="display-switch" v-model="displayState" name="display-switch"
+                                            class="switch is-success" type="checkbox" ref="displaySwitch"
+                                            data-state="{{display_state}}">
+                                        <label for="display-switch"></label>
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Volume -->
+
+                        <tr>
+                            <th class="is-narrow has-text-right">Volume</th>
+                            <td>
+                                <div class="field is-grouped">
+                                    <p class="control">
+                                        <input id="volume-switch" v-model="audio['enabled']" name="volume-switch"
+                                            class="switch is-success" type="checkbox" ref="muteSwitch"
+                                            data-mute="{{audio_mute}}">
+                                        <label for="volume-switch"></label>
+                                    </p>
+                                    <p class="control is-flex">
+                                        <input id="volume-slider" ref="volumeSlider" data-volume="{{audio_volume}}"
+                                            type="range" min="0" max="150" v-model.number="audio['volume']"
+                                            v-bind:disabled="!audio['enabled']">
+                                        <label for="volume-slider" class="pl-2">[[ audio['volume'] ]] %</label>
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- Screenshots -->
+
+            <div id="screenshots" class="column is-full-tablet is-half-desktop">
+                <div ref="root" v-if="serviceRunning" data-displayState="{{display_state|lower}}"
+                    data-serviceRunning="{{screenshot_service_running}}">
+                    <a v-on:click="modalActive = true;">
+                        <figure class="image">
+                            <img :src="thumbnail" />
+                        </figure>
+                    </a>
+
+                    <button id="screenshot-button" class="button is-small is-white" v-on:click="grabScreenshot">
+                        <span class="icon">
+                            <i class="fas fa-camera"></i>
+                        </span>
+                    </button>
+
+                    <div id="modal" class="modal" v-bind:class="{'is-active': modalActive}">
+                        <div class="modal-background" v-on:click="modalActive = false"></div>
+                        <div class="container is-flex is-align-items-center">
+                            <p class="image">
+                                <img :src="latest.url">
+                            </p>
+                        </div>
+                        <button class="modal-close is-large" aria-label="close"
+                            v-on:click="modalActive = false"></button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div> <!-- end columns -->
+    </div>
+</section>
+
+<section class="section" id="usage">
+    <div class="container">
+
+        <div class="columns">
+            <div class="column">
+                <label class="label">CPU Usage [%]</label>
+                <div ref="cpuUsage"></div>
+            </div>
+            <div class="column">
+                <label class="label">CPU temperature [°C]</label>
+                <div ref="cpuTemperature"></div>
+            </div>
+        </div>
+
+        <div class="columns">
+            <div class="column">
+                <label class="label">Memory usage [%]</label>
+                <div ref="memoryUsage"></div>
+            </div>
+            <div class="column">
+                <label class="label">Disk space</label>
+                <div ref="hdUsage"></div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<div id="modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+        <p class="image">
+            <img src="{{ url_for('static', filename='img/box-sleeping.gif') }}">
+        </p>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script src="{{ url_for('static', filename='js/control-panel.js') }}"></script>
+<script src="{{ url_for('static', filename='js/screenshots.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/apexcharts-3.35.0/apexcharts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/usage.js') }}"></script>
+{% endblock %}

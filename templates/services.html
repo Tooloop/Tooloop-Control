@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Services{% endblock %}
+
+{% block main %}
+<section class="section">
+    <div id="services" class="container">
+        
+        <h1 class="title">Services</h1>
+
+        <table class="table is-fullwidth" style="background-color: transparent; line-height: 2.5;">
+
+            <tr>
+                <th class="is-narrow has-text-right">Screen sharing (VNC)</th>
+                <td>
+                    <input id="vnc-switch" v-on:change="setVnc()" v-model="vnc" name="vnc-switch" class="switch is-success" type="checkbox"
+                        ref="vncSwitch" data-state="{{services.vnc}}">
+                    <label for="vnc-switch"></label>
+                    <button class="button is-light ml-4" v-if="vnc" onclick="document.location='vnc://{{ip_address}}'">Connect</button>
+                </td>
+            </tr>
+
+            <tr>
+                <th class="is-narrow has-text-right">SSH</th>
+                <td>
+                    <input id="ssh-switch" v-on:change="setSsh()"  v-model="ssh" name="ssh-switch" class="switch is-success" type="checkbox"
+                        ref="sshSwitch" data-state="{{services.ssh}}">
+                    <label for="ssh-switch"></label>
+                    <button class="button is-light ml-4" v-if="ssh" onclick="document.location='ssh://tooloop@{{ip_address}}'">Connect</button>
+                </td>
+            </tr>
+
+            <tr>
+                <th class="is-narrow has-text-right">Control center</th>
+                <td>
+                    <input id="control-center-switch" v-on:change="setControlCenter()" v-model="controlCenter" name="control-center-switch" class="switch is-success" type="checkbox"
+                        ref="controlCenterSwitch" data-state="{{services.control_center}}">
+                    <label for="control-center-switch"></label>
+                </td>
+            </tr>
+
+            <tr>
+                <th class="is-narrow has-text-right">Screenshots</th>
+                <td>
+                    <input id="screenshots-switch" v-on:change="setScreenshots()" v-model="screenshots" name="screenshots-switch" class="switch is-success" type="checkbox"
+                        ref="screenshotsSwitch" data-state="{{services.screenshot_service}}">
+                    <label for="screenshots-switch"></label>
+                </td>
+            </tr>
+
+        </table>
+
+    </div>
+</section>
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script src="{{ url_for('static', filename='js/services.js') }}"></script>
+{% endblock %}

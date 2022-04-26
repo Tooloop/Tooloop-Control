@@ -1,0 +1,66 @@
+#menu {
+
+    display: flex;
+    position: relative;
+
+    .menu {
+        z-index: 1;
+        min-width: 14rem;
+        padding-top: 2.125rem;
+        
+        transition:
+            left 0.3s $easing,
+            box-shadow 0.3s $easing;
+        
+        .li {
+            padding: $gap;
+        }
+        
+        @include mobile {
+            display: none;
+        //     position: fixed;
+        //     height: 100vh;
+        //     will-change: left;
+        //     left: -14rem;
+        //     box-shadow: 0 3px 5px rgba(0,0,0,0);
+            
+        //     &.is-active {
+        //         left: 0;
+        //         box-shadow: 3px 0px 5px rgba(0,0,0,0.3);
+    
+        //     }
+            
+        }
+    }
+
+    #menu-toggle {
+        display: none;
+        // position: absolute;
+        // height: 3.333rem;
+        // width: 2rem;
+        // right: -2rem;
+        // border-radius: 0 $radius $radius 0;
+        // padding: 0;
+        // box-shadow: 3px 0px 3px rgba(0,0,0,0.3);
+    }
+}
+
+@include mobile {
+    html {
+        padding-bottom: 3.625rem;
+    }
+}
+
+// #main::after {
+//     content: " ";
+//     @include overlay;
+//     position: fixed;
+//     background-color: rgba(0,0,0,0);
+//     transition: background-color 0.3s $easing;
+//     pointer-events: none;
+    
+// }
+// #main.menu-active::after {
+//     background-color: rgba(0,0,0,0.15);
+//     pointer-events: all;
+// }

@@ -1,0 +1,12 @@
+[Unit]
+Description=Tooloop Control
+After=network.target
+
+[Service]
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/tooloop/.Xauthority
+ExecStart=/opt/tooloop/control-center/venv/bin/python3 /opt/tooloop/control-center/app.py
+Restart=always
+
+[Install]
+WantedBy=graphical.target

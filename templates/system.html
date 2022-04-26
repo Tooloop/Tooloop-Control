@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}System{% endblock %}
+
+{% block main %}
+<section class="section">
+    <div id="system" class="container">
+
+        <h1 class="title">System</h1>
+
+        <table class="table is-fullwidth" style="background-color: transparent; line-height: 2.5;">
+            <!-- Hostname -->
+            <tr>
+                <th class="is-narrow has-text-right">Hostname</th>
+                <td>
+                    <div class="field has-addons">
+                        <div class="control">
+                            <input class="input is-family-monospace" type="text" ref="hostname" v-model="hostname"
+                                data-hostname="{{hostname}}">
+                        </div>
+                        <div class="control">
+                            <a class="button is-link">
+                                Save
+                            </a>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+
+            <!-- IP address -->
+            <tr>
+                <th class="is-narrow has-text-right">IP address</th>
+                <td><span class="is-family-monospace">{{ ip_address }}</span></td>
+            </tr>
+
+            <!-- Uptime -->
+            <tr>
+                <th class="is-narrow has-text-right">Uptime</th>
+                <td ref="uptime" data-uptime="{{uptime}}">[[uptime]]</td>
+            </tr>
+
+            <!-- Remote access -->
+            {% if ssh_running or vnc_running %}
+            <tr>
+                <th class="is-narrow has-text-right">Remote access</th>
+                <td>
+                    {% if ssh_running %}<button class="button is-light"
+                        onclick="document.location='ssh://tooloop@{{ip_address}}'">SSH</button>{% endif %}
+                    {% if vnc_running %}&nbsp;<button class="button is-light"
+                        onclick="document.location='vnc://{{ip_address}}'">Screen sharing</button>{% endif %}
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+</section>
+
+<section class="section has-background-white-bis">
+    <div id="schedule" class="container">
+        <h2 class="title is-size-4">Runtime Schedule</h2>
+
+        <table class="table is-fullwidth" style="background-color: transparent;">
+
+            <!-- Start up -->
+
+            <tr>
+                <th class="is-narrow">
+                    <!-- Switch -->
+                    <input type="checkbox" v-model="schedule.startup.enabled" id="startup-switch" name="startup-switch"
+                        class="switch is-success" v-on:change="saveSchedule()">
+                    <label for="startup-switch">Start up</label>
+                </th>
+            </tr>
+
+            <tr>
+                <td>
+                    <div class="is-flex is-flex-wrap-wrap">
+
+                        <!-- Days -->
+                        <div class="field has-addons mr-3">
+                            <p class="control" v-for="day in weekdays">
+                                <button class="button is-small" v-bind:disabled="!schedule.startup.enabled"
+                                    v-bind:class="{'is-link': schedule.startup.weekdays.indexOf(day.num) != -1}"
+                                    v-on:click="toggleDay('startup', day.num); saveSchedule()">
+                                    [[day.name]]
+                                </button>
+                            </p>
+                        </div>
+
+                        <!-- Time -->
+                        <div class="field has-addons">
+                            <span class="mr-3">at</span>
+
+                            <div class="select is-small">
+                                <select v-model.number="schedule.startup.time.hours"
+                                    v-bind:disabled="!schedule.startup.enabled" v-on:change="saveSchedule()">
+                                    <option v-for="n in 24" v-bind:value="n-1">[[ pad(n-1, 2) ]]</option>
+                                </select>
+                            </div>
+
+                            &nbsp;:&nbsp;
+
+                            <div class="select is-small">
+                                <select v-model.number="schedule.startup.time.minutes"
+                                    v-bind:disabled="!schedule.startup.enabled" v-on:change="saveSchedule()">
+                                    <option v-for="n in 12" v-bind:value="(n - 1) * 5">[[ pad((n - 1) * 5, 2) ]]
+                                    </option>
+                                </select>.
+                            </div>
+                        </div>
+
+                    </div>
+                </td>
+            </tr>
+
+            <!-- Power off -->
+
+            <tr>
+                <th class="is-narrow">
+                    <!-- Switch -->
+                    <input type="checkbox" v-model="schedule.shutdown.enabled" id="shutdown-switch"
+                        name="shutdown-switch" class="switch is-success" v-on:change="saveSchedule()">
+                    <label for="shutdown-switch">Power off</label>
+                </th>
+            </tr>
+
+            <tr>
+                <td>
+                    <div class="is-flex is-flex-wrap-wrap">
+
+                        <!-- Days -->
+                        <div class="field has-addons mr-3">
+                            <p class="control" v-for="day in weekdays">
+                                <button class="button is-small" v-bind:disabled="!schedule.shutdown.enabled"
+                                    v-bind:class="{'is-link': schedule.shutdown.weekdays.indexOf(day.num) != -1}"
+                                    v-on:click="toggleDay('shutdown', day.num); saveSchedule();">
+                                    [[day.name]]
+                                </button>
+                            </p>
+                        </div>
+
+                        <!-- Time -->
+                        <div class="field has-addons">
+                            <span class="mr-3">at</span>
+
+                            <div class="select is-small">
+                                <select v-model.number="schedule.shutdown.time.hours"
+                                    v-bind:disabled="!schedule.shutdown.enabled" v-on:change="saveSchedule()">
+                                    <option v-for="n in 24" v-bind:value="n-1">[[ pad(n-1, 2) ]]</option>
+                                </select>
+                            </div>
+
+                            &nbsp;:&nbsp;
+
+                            <div class="select is-small">
+                                <select v-model.number="schedule.shutdown.time.minutes"
+                                    v-bind:disabled="!schedule.shutdown.enabled" v-on:change="saveSchedule()">
+                                    <option v-for="n in 12" v-bind:value="(n - 1) * 5">[[ pad((n - 1) * 5, 2) ]]
+                                    </option>
+                                </select>.
+                            </div>
+                        </div>
+
+                    </div>
+                </td>
+            </tr>
+
+        </table>
+
+    </div>
+</section>
+
+<section class="section">
+    <div id="schedule" class="container">
+
+        <h2 class="title is-size-4">Password</h2>
+
+        <table class="table is-fullwidth" style="background-color: transparent;">
+
+            <tr>
+                <th class="is-narrow">
+                </th>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script src="{{ url_for('static', filename='js/system.js') }}"></script>
+<script src="{{ url_for('static', filename='js/schedule.js') }}"></script>
+{% endblock %}
