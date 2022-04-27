@@ -18,9 +18,7 @@
                                 data-hostname="{{hostname}}">
                         </div>
                         <div class="control">
-                            <a class="button is-link">
-                                Save
-                            </a>
+                            <button class="button is-info" v-on:click="saveHostname()">Save</button>
                         </div>
                     </div>
 
@@ -39,6 +37,21 @@
                 <td ref="uptime" data-uptime="{{uptime}}">[[uptime]]</td>
             </tr>
 
+            <!-- Timezone -->
+            <tr>
+                <th class="is-narrow has-text-right">Timezone</th>
+                <td>
+                    {{timezone}}
+                    {#
+                    <button class="button is-ghost" v-on:click="setTimezone()">
+                        <span class="icon">
+                            <i class="fas fa-edit"></i>
+                        </span>
+                    </button>
+                    #}
+                </td>
+            </tr>
+
             <!-- Remote access -->
             {% if ssh_running or vnc_running %}
             <tr>
@@ -51,6 +64,46 @@
                 </td>
             </tr>
             {% endif %}
+
+            <!-- Password -->
+            <tr>
+                <th class="is-narrow has-text-right">Change password</th>
+                <td>
+
+                    <div class="field has-addons">
+                        <p class="control has-icons-left">
+                            <input class="input is-family-monospace" placeholder="Old password" v-model="oldPassword">
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="field has-addons">
+                        <p class="control has-icons-left">
+                            <input class="input is-family-monospace" placeholder="New password" v-model="newPassword">
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="field has-addons">
+                        <p class="control has-icons-left">
+                            <input class="input is-family-monospace" placeholder="Repeat new password"
+                                v-model="repeatNewPassword">
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="field">
+                        <p class="control">
+                            <button class="button is-info" v-on:click="savePassword()">Save</button>
+                        </p>
+                    </div>
+
+                </td>
+            </tr>
+
         </table>
     </div>
 </section>
@@ -80,7 +133,7 @@
                         <div class="field has-addons mr-3">
                             <p class="control" v-for="day in weekdays">
                                 <button class="button is-small" v-bind:disabled="!schedule.startup.enabled"
-                                    v-bind:class="{'is-link': schedule.startup.weekdays.indexOf(day.num) != -1}"
+                                    v-bind:class="{'is-info': schedule.startup.weekdays.indexOf(day.num) != -1}"
                                     v-on:click="toggleDay('startup', day.num); saveSchedule()">
                                     [[day.name]]
                                 </button>
@@ -132,7 +185,7 @@
                         <div class="field has-addons mr-3">
                             <p class="control" v-for="day in weekdays">
                                 <button class="button is-small" v-bind:disabled="!schedule.shutdown.enabled"
-                                    v-bind:class="{'is-link': schedule.shutdown.weekdays.indexOf(day.num) != -1}"
+                                    v-bind:class="{'is-info': schedule.shutdown.weekdays.indexOf(day.num) != -1}"
                                     v-on:click="toggleDay('shutdown', day.num); saveSchedule();">
                                     [[day.name]]
                                 </button>
@@ -170,21 +223,6 @@
     </div>
 </section>
 
-<section class="section">
-    <div id="schedule" class="container">
-
-        <h2 class="title is-size-4">Password</h2>
-
-        <table class="table is-fullwidth" style="background-color: transparent;">
-
-            <tr>
-                <th class="is-narrow">
-                </th>
-                <td></td>
-            </tr>
-        </table>
-    </div>
-</section>
 {% endblock %}
 
 

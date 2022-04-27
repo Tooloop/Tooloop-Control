@@ -32,43 +32,57 @@ const Services = Vue.createApp({
         },
 
         setVnc() {
-            var command = this.vnc ? 'enable' : 'disable';
-            fetch(this.api + '/vnc/' + command)
+            fetch(this.api + '/vnc', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "vnc": this.vnc })
+            })
                 .then(response => response.json())
-                .then(this.getStatus);
+                .then(data => {
+                    this.vnc = data.vnc;
+                });
         },
 
         setSsh() {
-            if (!this.ssh) {
-                if (!confirm('Are you sure?\nYou might need to have physical access to switch SSH back on.')) {
-                    this.ssh = true;
-                    return;
-                }
-            }
-            var command = this.ssh ? 'enable' : 'disable';
-            fetch(this.api + '/ssh/' + command)
+            fetch(this.api + '/ssh', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "ssh": this.ssh })
+            })
                 .then(response => response.json())
-                .then(this.getStatus);
+                .then(data => {
+                    this.ssh = data.ssh;
+                });
         },
 
         setControlCenter() {
             if (!this.controlCenter) {
-                if (!confirm('Are you sure?\nYou might need to have physical access to switch the Control Center back on.')) {
+                if (!confirm('Are you sure?\nThis will disable network access to the Control Center. You will need physical access to the machine to turn it back on.')) {
                     this.controlCenter = true;
                     return;
                 }
             }
-            var command = this.controlCenter ? 'enable' : 'disable';
-            fetch(this.api + '/controlcenter/' + command)
+            fetch(this.api + '/controlcenter', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "control_center": this.controlCenter })
+            })
                 .then(response => response.json())
-                .then(this.getStatus);
+                .then(data => {
+                    this.controlCenter = data.control_center;
+                });
         },
 
         setScreenshots() {
-            var command = this.screenshots ? 'enable' : 'disable';
-            fetch(this.api + '/screenshots/' + command)
+            fetch(this.api + '/screenshots', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "screenshot_service": this.screenshots })
+            })
                 .then(response => response.json())
-                .then(this.getStatus);
+                .then(data => {
+                    this.screenshots = data.screenshot_service;
+                });
         },
     },
 }).mount("#services");

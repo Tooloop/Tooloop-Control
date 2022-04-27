@@ -44,10 +44,10 @@ presentation = Presentation()
 services = Services(app)
 screenshots = Screenshots()
 
+
 # ------------------------------------------------------------------------------
 # Routes
 # ------------------------------------------------------------------------------
-
 
 @app.route('/')
 @app.route("/dashboard")
@@ -81,14 +81,16 @@ def render_system():
                            hostname=system.get_hostname(),
                            ip_address=system.get_ip(),
                            uptime=time_to_ISO_string(system.get_uptime()),
+                           timezone=system.get_timezone(),
                            ssh_running=services.is_ssh_running(),
                            vnc_running=services.is_vnc_running(),
                            runtime_schedule=system.get_runtime_schedule(),
                            )
+
+
 # ------------------------------------------------------------------------------
 # ADDITIONAL RESOURCE FOLDERS
 # ------------------------------------------------------------------------------
-
 
 @app.route('/screenshots/<path:filename>')
 def serve_screenshot(filename):
@@ -108,7 +110,6 @@ def serve_package_media(filename):
 # ------------------------------------------------------------------------------
 # RESTFUL API
 # ------------------------------------------------------------------------------
-
 
 # System
 
@@ -131,11 +132,7 @@ def set_hostname():
         abort(400)
     try:
         system.set_hostname(request.get_json()['hostname'])
-        return jsonify({
-            'message': 'Hostname saved',
-            'hostname': system.get_hostname(),
-            'needsReboot': system.needs_reboot
-        })
+        return jsonify({'hostname': system.get_hostname()})
     except Exception as e:
         abort(500, e)
 
@@ -198,9 +195,9 @@ def set_password():
     if not request.get_json() or not 'oldPassword' in request.get_json() or not 'newPassword' in request.get_json():
         abort(400)
     try:
-        system.set_password(
+        message = system.set_password(
             request.get_json()['oldPassword'], request.get_json()['newPassword'])
-        return jsonify({'message': 'Password saved'})
+        return jsonify({'message': message})
     except Exception as e:
         abort(500, e)
 
@@ -345,68 +342,77 @@ def vnc_status():
     return jsonify({'vnc': services.is_vnc_running()})
 
 
-@app.route('/tooloop/api/v1.0/services/vnc/enable', methods=['GET'])
-def enable_vnc():
-    services.enable_vnc()
-    return jsonify({'vnc': services.is_vnc_running()})
-
-
-@app.route('/tooloop/api/v1.0/services/vnc/disable', methods=['GET'])
-def disable_vnc():
-    services.disable_vnc()
-    return jsonify({'vnc': services.is_vnc_running()})
+@app.route('/tooloop/api/v1.0/services/vnc', methods=['PUT'])
+def set_vnc():
+    if not request.get_json() or not 'vnc' in request.get_json():
+        abort(400)
+    try:
+        state = request.get_json()['vnc']
+        if state == True:
+            services.enable_vnc()
+        else:
+            services.disable_vnc()
+        return jsonify({'vnc': services.is_vnc_running()})
+    except Exception as e:
+        abort(500, e)
 
 
 @app.route('/tooloop/api/v1.0/services/ssh', methods=['GET'])
 def ssh_status():
     return jsonify({'ssh': services.is_ssh_running()})
 
-
-@app.route('/tooloop/api/v1.0/services/ssh/enable', methods=['GET'])
-def enable_ssh():
-    services.enable_ssh()
-    return jsonify({'ssh': services.is_ssh_running()})
-
-
-@app.route('/tooloop/api/v1.0/services/ssh/disable', methods=['GET'])
-def disable_ssh():
-    services.disable_ssh()
-    return jsonify({'ssh': services.is_ssh_running()})
+@app.route('/tooloop/api/v1.0/services/ssh', methods=['PUT'])
+def set_ssh():
+    if not request.get_json() or not 'ssh' in request.get_json():
+        abort(400)
+    try:
+        state = request.get_json()['ssh']
+        if state == True:
+            services.enable_ssh()
+        else:
+            services.disable_ssh()
+        return jsonify({'ssh': services.is_ssh_running()})
+    except Exception as e:
+        abort(500, e)
 
 
 @app.route('/tooloop/api/v1.0/services/controlcenter', methods=['GET'])
 def control_center_status():
-    return jsonify({'controlcenter': services.is_control_center_running()})
+    return jsonify({'control_center': services.is_control_center_running()})
 
 
-@app.route('/tooloop/api/v1.0/services/controlcenter/enable', methods=['GET'])
-def enable_control_center():
-    services.enable_control_center()
-    return jsonify({'controlcenter': services.is_control_center_running()})
-
-
-@app.route('/tooloop/api/v1.0/services/controlcenter/disable', methods=['GET'])
-def disable_control_center():
-    services.disable_control_center()
-    return jsonify({'controlcenter': services.is_control_center_running()})
+@app.route('/tooloop/api/v1.0/services/controlcenter', methods=['PUT'])
+def set_control_center():
+    if not request.get_json() or not 'control_center' in request.get_json():
+        abort(400)
+    try:
+        state = request.get_json()['control_center']
+        if state == True:
+            services.enable_control_center()
+        else:
+            services.disable_control_center()
+        return jsonify({'control_center': services.is_control_center_running()})
+    except Exception as e:
+        abort(500, e)
 
 
 @app.route('/tooloop/api/v1.0/services/screenshots', methods=['GET'])
 def screenshot_service_status():
     return jsonify({'screenshot_service': services.is_screenshot_service_running()})
 
-
-@app.route('/tooloop/api/v1.0/services/screenshots/enable', methods=['GET'])
-def enable_screenshot_service():
-    services.enable_screenshot_service()
-    return jsonify({'screenshot_service': services.is_screenshot_service_running()})
-
-
-@app.route('/tooloop/api/v1.0/services/screenshots/disable', methods=['GET'])
-def disable_screenshot_service():
-    services.disable_screenshot_service()
-    return jsonify({'screenshot_service': services.is_screenshot_service_running()})
-
+@app.route('/tooloop/api/v1.0/services/screenshots', methods=['PUT'])
+def set_screenshot_service():
+    if not request.get_json() or not 'screenshot_service' in request.get_json():
+        abort(400)
+    try:
+        state = request.get_json()['screenshot_service']
+        if state == True:
+            services.enable_screenshot_service()
+        else:
+            services.disable_screenshot_service()
+        return jsonify({'screenshot_service': services.is_screenshot_service_running()})
+    except Exception as e:
+        abort(500, e)
 
 # ------------------------------------------------------------------------------
 # MAIN

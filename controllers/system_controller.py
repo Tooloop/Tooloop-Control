@@ -98,6 +98,9 @@ class System(object):
         uptime = gmtime_from_string(uptime_string, '%Y-%m-%d %H:%M:%S')
         return uptime
 
+    def get_timezone(self):
+        return check_output(['cat', '/etc/timezone']).decode().rstrip('\n')
+
     def get_hd(self):
         # get hd information
         # /dev/root        7541056 2210616   4994300  31% /
@@ -209,24 +212,41 @@ class System(object):
             raise
 
     def set_password(self, old_password, new_password):
-        # test if current password is correct
         child = pexpect.spawn(
             '/usr/bin/sudo -u tooloop /usr/bin/passwd tooloop')
-        child.expect('.*current.*')
-        child.sendline(old_password)
-        child.expect('.*password.*')
+        try:
+            # Prompt for old password
+            i = child.expect(['[Oo]ld [Pp]assword', '[Cc]urrent password', '[Nn]ew [Pp]assword'])
 
-        if ('new' in child.after):
-            # set new password
-            child = pexpect.spawn('/usr/bin/passwd tooloop')
-            # repeat it 2 times
-            for x in xrange(2):
-                child.expect('.*')
-                child.sendline(new_password)
-                time.sleep(0.1)
+            # Type old password
+            if i == 0 or i == 1:
+                child.sendline(old_password)
+                child.expect('[Nn]ew [Pp]assword')
 
-        else:
-            raise Exception('The old password was not correct.')
+            # Type new password
+            child.sendline(new_password)
+
+            # Prompt to retype new password
+            i = child.expect(['[Nn]ew [Pp]assword', '[Rr]etype', '[Rr]e-enter'])
+            if i == 0:
+                message = child.before
+                print('Host did not like new password. Here is what it said...')
+                print(message)
+                child.send(chr(3))  # Ctrl-C
+                # This should tell remote passwd command to quit.
+                child.sendline('')
+                raise Exception(message)
+
+            # Retype new pasword
+            child.sendline(new_password)
+            child.expect('[$#] ')
+            print(child.after)
+        
+        except pexpect.TIMEOUT:
+            return child.before.decode().lstrip(': \r\n').rstrip('\r\n')
+        except pexpect.EOF:
+            return child.before.decode().lstrip(': \r\n').rstrip('\r\n')
+
 
     def to_dict(self):
         return {

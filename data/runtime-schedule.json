@@ -9,8 +9,8 @@
             5
         ],
         "time": {
-            "hours": 6,
-            "minutes": 30
+            "hours": 13,
+            "minutes": 0
         }
     },
     "shutdown": {
@@ -25,7 +25,7 @@
         ],
         "time": {
             "hours": 16,
-            "minutes": 5
+            "minutes": 0
         }
     }
 }

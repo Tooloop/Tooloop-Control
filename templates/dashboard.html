@@ -9,101 +9,100 @@
 
         <div class="columns is-multiline is-reversed">
             <div class="column is-full-tablet is-half-desktop" id="control-panel">
-                <div class="table-container">
-                    <table class="table is-fullwidth" style="background-color: transparent; line-height: 2.5;">
+                
+                <table class="table is-fullwidth" style="background-color: transparent; line-height: 2.5;">
 
-                        <!-- Power off / reboot -->
+                    <!-- Power off / reboot -->
 
-                        <tr>
-                            <th class="is-narrow has-text-right">Machine</th>
-                            <td>
-                                <div class="field has-addons">
-                                    <p class="control">
-                                        <button class="button is-light" v-on:click="reboot">
-                                            <span class="icon">
-                                                <i class="fas fa-rotate-left"></i>
-                                            </span>
-                                            <span>Reboot</span>
-                                        </button>
-                                    </p>
-                                    <p class="control">
-                                        <button class="button is-white" v-on:click="poweroff">
-                                            <span class="icon has-text-danger">
-                                                <i class="fas fa-power-off"></i>
-                                            </span>
-                                            <span>Power off</span>
-                                        </button>
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
+                    <tr>
+                        <th class="is-narrow has-text-right">Machine</th>
+                        <td>
+                            <div class="field has-addons">
+                                <p class="control">
+                                    <button class="button is-light" v-on:click="reboot">
+                                        <span class="icon">
+                                            <i class="fas fa-rotate-left"></i>
+                                        </span>
+                                        <span>Reboot</span>
+                                    </button>
+                                </p>
+                                <p class="control">
+                                    <button class="button is-white" v-on:click="poweroff">
+                                        <span class="icon has-text-danger">
+                                            <i class="fas fa-power-off"></i>
+                                        </span>
+                                        <span>Power off</span>
+                                    </button>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
 
-                        <!-- Presentation -->
+                    <!-- Presentation -->
 
-                        <tr>
-                            <th class="is-narrow has-text-right">Presentation</th>
-                            <td>
-                                <div class="field has-addons">
-                                    <p class="control">
-                                        <button class="button is-light" v-on:click="startPresentation">
-                                            <span class="icon has-text-success">
-                                                <i class="fas fa-play"></i>
-                                            </span>
-                                            <span>Start</span>
-                                        </button>
-                                    </p>
-                                    <p class="control">
-                                        <button class="button is-white" v-on:click="stopPresentation">
-                                            <span class="icon has-text-danger">
-                                                <i class="fas fa-stop"></i>
-                                            </span>
-                                            <span>Stop</span>
-                                        </button>
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
+                    <tr>
+                        <th class="is-narrow has-text-right">Presentation</th>
+                        <td>
+                            <div class="field has-addons">
+                                <p class="control">
+                                    <button class="button is-light" v-on:click="startPresentation">
+                                        <span class="icon has-text-success">
+                                            <i class="fas fa-play"></i>
+                                        </span>
+                                        <span>Start</span>
+                                    </button>
+                                </p>
+                                <p class="control">
+                                    <button class="button is-white" v-on:click="stopPresentation">
+                                        <span class="icon has-text-danger">
+                                            <i class="fas fa-stop"></i>
+                                        </span>
+                                        <span>Stop</span>
+                                    </button>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
 
-                        <!-- Display -->
+                    <!-- Display -->
 
-                        <tr>
-                            <th class="is-narrow has-text-right">Display</th>
-                            <td>
-                                <div class="field">
-                                    <p class="control">
-                                        <input id="display-switch" v-model="displayState" name="display-switch"
-                                            class="switch is-success" type="checkbox" ref="displaySwitch"
-                                            data-state="{{display_state}}">
-                                        <label for="display-switch"></label>
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
+                    <tr>
+                        <th class="is-narrow has-text-right">Display</th>
+                        <td>
+                            <div class="field">
+                                <p class="control">
+                                    <input id="display-switch" v-model="displayState" name="display-switch"
+                                        class="switch is-success" type="checkbox" ref="displaySwitch"
+                                        data-state="{{display_state}}">
+                                    <label for="display-switch"></label>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
 
-                        <!-- Volume -->
+                    <!-- Volume -->
 
-                        <tr>
-                            <th class="is-narrow has-text-right">Volume</th>
-                            <td>
-                                <div class="field is-grouped">
-                                    <p class="control">
-                                        <input id="volume-switch" v-model="audio['enabled']" name="volume-switch"
-                                            class="switch is-success" type="checkbox" ref="muteSwitch"
-                                            data-mute="{{audio_mute}}">
-                                        <label for="volume-switch"></label>
-                                    </p>
-                                    <p class="control is-flex">
-                                        <input id="volume-slider" ref="volumeSlider" data-volume="{{audio_volume}}"
-                                            type="range" min="0" max="150" v-model.number="audio['volume']"
-                                            v-bind:disabled="!audio['enabled']">
-                                        <label for="volume-slider" class="pl-2">[[ audio['volume'] ]] %</label>
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
+                    <tr>
+                        <th class="is-narrow has-text-right">Volume</th>
+                        <td>
+                            <div class="field is-grouped">
+                                <p class="control">
+                                    <input id="volume-switch" v-model="audio['enabled']" name="volume-switch"
+                                        class="switch is-success" type="checkbox" ref="muteSwitch"
+                                        data-mute="{{audio_mute}}">
+                                    <label for="volume-switch"></label>
+                                </p>
+                                <p class="control is-flex">
+                                    <input id="volume-slider" ref="volumeSlider" data-volume="{{audio_volume}}"
+                                        type="range" min="0" max="150" v-model.number="audio['volume']"
+                                        v-bind:disabled="!audio['enabled']">
+                                    <label for="volume-slider" class="pl-2">[[ audio['volume'] ]] %</label>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
 
-                    </table>
-                </div>
+                </table>
 
             </div>
 

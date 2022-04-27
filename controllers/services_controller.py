@@ -52,14 +52,17 @@ class Services(object):
             for line in file:
                 new_line = line.replace('127.0.0.1', '0.0.0.0')
                 print(new_line, end='')
+        self.app.config['HOST'] = '0.0.0.0'
         call('systemctl restart tooloop-control', shell=True)
 
     def disable_control_center(self):
+        print('disable_control_center')
         # change server config
         with fileinput.input(self.app.root_path+"/data/config.cfg", inplace=True) as file:
             for line in file:
                 new_line = line.replace('0.0.0.0', '127.0.0.1')
                 print(new_line, end='')
+        self.app.config['HOST'] = '127.0.0.1'
         call('systemctl restart tooloop-control', shell=True)
 
     def is_screenshot_service_running(self):

@@ -45,7 +45,7 @@ const ControlPanel = Vue.createApp({
         },
 
         reboot() {
-            if (confirm("Are you sure, you want to power off the machine?")) {
+            if (confirm("Are you sure, you want to reboot the machine?")) {
                 fetch(this.api + 'system/reboot');
                 this.modal.classList.toggle('is-active', true);
             }
