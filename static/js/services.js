@@ -5,18 +5,15 @@ const Services = Vue.createApp({
     data() {
         return {
             api: '/tooloop/api/v1.0/services',
-            vnc: true,
-            ssh: true,
-            controlCenter: true,
+            vnc: false,
+            ssh: false,
+            controlCenter: false,
             screenshots: false
         }
     },
 
     mounted() {
-        this.vnc = JSON.parse(this.$refs.vncSwitch.dataset.state.toLowerCase());
-        this.ssh = JSON.parse(this.$refs.sshSwitch.dataset.state.toLowerCase());
-        this.controlCenter = JSON.parse(this.$refs.controlCenterSwitch.dataset.state.toLowerCase());
-        this.screenshots = JSON.parse(this.$refs.screenshotsSwitch.dataset.state.toLowerCase());
+        this.setServices(services);
     },
 
     methods: {
@@ -24,11 +21,15 @@ const Services = Vue.createApp({
             fetch(this.api)
                 .then(response => response.json())
                 .then(data => {
-                    this.vnc = data.vnc;
-                    this.ssh = data.ssh;
-                    this.controlCenter = data.control_center;
-                    this.screenshots = data.screenshot_service;
+                    this.setServices(data);
                 });
+        },
+
+        setServices(services) {
+            this.vnc = services.vnc;
+            this.ssh = services.ssh;
+            this.controlCenter = services.control_center;
+            this.screenshots = services.screenshot_service;
         },
 
         setVnc() {

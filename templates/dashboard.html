@@ -9,7 +9,7 @@
 
         <div class="columns is-multiline is-reversed">
             <div class="column is-full-tablet is-half-desktop" id="control-panel">
-                
+
                 <table class="table is-fullwidth" style="background-color: transparent; line-height: 2.5;">
 
                     <!-- Power off / reboot -->
@@ -72,8 +72,7 @@
                             <div class="field">
                                 <p class="control">
                                     <input id="display-switch" v-model="displayState" name="display-switch"
-                                        class="switch is-rounded  is-success" type="checkbox" ref="displaySwitch"
-                                        data-state="{{display_state}}">
+                                        class="switch is-rounded  is-success" type="checkbox" ref="displaySwitch">
                                     <label for="display-switch"></label>
                                 </p>
                             </div>
@@ -88,12 +87,11 @@
                             <div class="field is-grouped">
                                 <p class="control">
                                     <input id="volume-switch" v-model="audio['enabled']" name="volume-switch"
-                                        class="switch is-rounded is-success" type="checkbox" ref="muteSwitch"
-                                        data-mute="{{audio_mute}}">
+                                        class="switch is-rounded is-success" type="checkbox" ref="muteSwitch">
                                     <label for="volume-switch"></label>
                                 </p>
                                 <p class="control is-flex">
-                                    <input id="volume-slider" ref="volumeSlider" data-volume="{{audio_volume}}"
+                                    <input id="volume-slider" ref="volumeSlider"
                                         type="range" min="0" max="150" v-model.number="audio['volume']"
                                         v-bind:disabled="!audio['enabled']">
                                     <label for="volume-slider" class="pl-2">[[ audio['volume'] ]] %</label>
@@ -109,8 +107,7 @@
             <!-- Screenshots -->
 
             <div id="screenshots" class="column is-full-tablet is-half-desktop">
-                <div ref="root" v-if="serviceRunning" data-displayState="{{display_state|lower}}"
-                    data-serviceRunning="{{screenshot_service_running}}">
+                <div ref="root" v-if="serviceRunning">
                     <a v-on:click="modalActive = true;">
                         <figure class="image">
                             <img :src="thumbnail" />
@@ -182,6 +179,16 @@
 
 
 {% block footer_scripts %}
+<script>
+    // Initial state from server
+    const hostname = {{ hostname | tojson }};
+    const displayState = {{ display_state | tojson }};
+    const audioMute = {{ audio_mute | tojson }};
+    const audioVolume = {{ audio_volume | tojson }};
+    const uptime = {{ uptime | tojson }};
+    const screenshotServiceRunning = {{ screenshot_service_running | tojson }};
+    const usage = {{ usage | tojson }};
+</script>
 <script src="{{ url_for('static', filename='js/control-panel.js') }}"></script>
 <script src="{{ url_for('static', filename='js/screenshots.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/apexcharts-3.35.0/apexcharts.min.js') }}"></script>

@@ -98,81 +98,86 @@ const Usage = Vue.createApp({
         // =====================================================================
         // Update data
         // =====================================================================
+        this.pushData(usage);
         setInterval(() => {
             fetch(this.api)
                 .then(response => response.json())
-                .then((data) => {
-                    // ---------------------------------------------------------
-                    // CPU usage
-                    // ---------------------------------------------------------
-                    let i = 0;
-                    for (const core in data.cpu.usage_percent) {
-
-                        // create empty series for each core
-                        if (!this.cpuUsage[i]) {
-                            this.cpuUsage.push({
-                                name: core,
-                                data: []
-                            });
-                        }
-
-                        // add new data
-                        this.cpuUsage[i].data.push({
-                            x: data.cpu.timestamp,
-                            y: data.cpu.usage_percent[core]
-                        });
-
-                        if (this.cpuUsage[i].length >= this.maxLength) {
-                            this.cpuUsage[i] = this.cpuUsage[i].slice(this.cpuUsage[i].length / 2, -1);
-                        }
-
-                        i++;
-                    }
-                    this.cpuUsageChart.updateSeries(this.cpuUsage);
-
-                    // ---------------------------------------------------------
-                    // CPU temperature
-                    // ---------------------------------------------------------
-                    this.cpuTemperature.push({
-                        x: data.cpu.timestamp,
-                        y: data.cpu.temperature
-                    });
-
-                    if (this.cpuTemperature.length >= this.maxLength) {
-                        this.cpuTemperature = this.cpuTemperature.slice(this.cpuTemperature.length / 2, -1);
-                    }
-                    this.cpuTemperatureChart.updateSeries([{
-                        data: this.cpuTemperature
-                    }]);
-
-                    // ---------------------------------------------------------
-                    // Memory usage
-                    // ---------------------------------------------------------
-                    this.memoryUsage.push({
-                        x: data.memory.timestamp,
-                        y: data.memory.usage_percent
-                    });
-
-                    if (this.memoryUsage.length >= this.maxLength) {
-                        this.memoryUsage = this.memoryUsage.slice(this.memoryUsage.length / 2, -1);
-                    }
-                    this.memoryUsageChart.updateSeries([{
-                        data: this.memoryUsage
-                    }]);
-
-                    // ---------------------------------------------------------
-                    // HD usage
-                    // ---------------------------------------------------------
-                    this.hdUsageChart.updateSeries([
-                        105089261568, // "free"
-                        4096, // "data"
-                        4096, // "logs"
-                        4096, // "packages"
-                        12288, // "presentation"
-                        352727040  // "screenshots"
-                    ], false);
-                });
+                .then(data => this.pushData(data));
         }, 1000);
+    },
+
+    methods: {
+        pushData(data) {
+            // ---------------------------------------------------------
+            // CPU usage
+            // ---------------------------------------------------------
+            let i = 0;
+            for (const core in data.cpu.usage_percent) {
+
+                // create empty series for each core
+                if (!this.cpuUsage[i]) {
+                    this.cpuUsage.push({
+                        name: core,
+                        data: []
+                    });
+                }
+
+                // add new data
+                this.cpuUsage[i].data.push({
+                    x: data.cpu.timestamp,
+                    y: data.cpu.usage_percent[core]
+                });
+
+                if (this.cpuUsage[i].length >= this.maxLength) {
+                    this.cpuUsage[i] = this.cpuUsage[i].slice(this.cpuUsage[i].length / 2, -1);
+                }
+
+                i++;
+            }
+            this.cpuUsageChart.updateSeries(this.cpuUsage);
+
+            // ---------------------------------------------------------
+            // CPU temperature
+            // ---------------------------------------------------------
+            this.cpuTemperature.push({
+                x: data.cpu.timestamp,
+                y: data.cpu.temperature
+            });
+
+            if (this.cpuTemperature.length >= this.maxLength) {
+                this.cpuTemperature = this.cpuTemperature.slice(this.cpuTemperature.length / 2, -1);
+            }
+            this.cpuTemperatureChart.updateSeries([{
+                data: this.cpuTemperature
+            }]);
+
+            // ---------------------------------------------------------
+            // Memory usage
+            // ---------------------------------------------------------
+            this.memoryUsage.push({
+                x: data.memory.timestamp,
+                y: data.memory.usage_percent
+            });
+
+            if (this.memoryUsage.length >= this.maxLength) {
+                this.memoryUsage = this.memoryUsage.slice(this.memoryUsage.length / 2, -1);
+            }
+            this.memoryUsageChart.updateSeries([{
+                data: this.memoryUsage
+            }]);
+
+            // ---------------------------------------------------------
+            // HD usage
+            // ---------------------------------------------------------
+            this.hdUsageChart.updateSeries([
+                105089261568, // "free"
+                4096, // "data"
+                4096, // "logs"
+                4096, // "packages"
+                12288, // "presentation"
+                352727040  // "screenshots"
+            ], false);
+        }
     },
 
 }).mount("#usage");

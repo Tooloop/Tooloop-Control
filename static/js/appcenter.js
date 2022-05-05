@@ -8,12 +8,11 @@ const ControlPanel = Vue.createApp({
             installedPresentation: null,
             availablePackages: [],
             sections: [
-                { id: 'tooloop/addons', name: 'Addons' },
                 { id: 'tooloop/addon', name: 'Addons' },
                 { id: 'tooloop/presentation', name: 'Presentations' },
             ],
             filter: {
-                sections: ['tooloop/addons', 'tooloop/addon', 'tooloop/presentation'],
+                sections: ['tooloop/addon', 'tooloop/presentation'],
                 installedOnly: false,
                 query: ""
             }

@@ -60,7 +60,13 @@ def index():
                            audio_mute=system.get_audio_mute(),
                            audio_volume=system.get_audio_volume(),
                            uptime=time_to_ISO_string(system.get_uptime()),
-                           screenshot_service_running=services.is_screenshot_service_running()
+                           screenshot_service_running=services.is_screenshot_service_running(),
+                           usage={
+                                'hd': system.get_hd(),
+                                'cpu': system.get_cpu(),
+                                'gpu': system.get_gpu(),
+                                'memory': system.get_memory()
+                                }
                            )
 
 

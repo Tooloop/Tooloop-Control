@@ -19,8 +19,8 @@ const Screenshots = Vue.createApp({
     },
 
     mounted() {
-        this.displayState = this.$refs.root.dataset.displaystate;
-        this.serviceRunning = JSON.parse(this.$refs.root.dataset.servicerunning.toLowerCase());
+        this.displayState = displayState;
+        this.serviceRunning = screenshotServiceRunning;
     },
 
     watch: {

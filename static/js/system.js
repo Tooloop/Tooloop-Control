@@ -15,10 +15,9 @@ const System = Vue.createApp({
 
     mounted() {
         // cache dom references
-        this.hostname = this.$refs.hostname.dataset.hostname;
-
-        let uptime = new Date(this.$refs.uptime.dataset.uptime);
-        this.uptime = "running since " + (uptime.toDateString() == new Date().toDateString() ? "" : uptime.toLocaleDateString() + ", ") + uptime.toLocaleTimeString();
+        this.hostname = hostname;
+        let uptimeDate = new Date(uptime);
+        this.uptime = "running since " + (uptimeDate.toDateString() == new Date().toDateString() ? "" : uptimeDate.toLocaleDateString() + ", ") + uptimeDate.toLocaleTimeString();
     },
 
     methods: {

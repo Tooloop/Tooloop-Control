@@ -15,9 +15,9 @@ const ControlPanel = Vue.createApp({
     },
 
     mounted() {
-        this.displayState = this.$refs.displaySwitch.dataset.state.toLowerCase() == 'on';
-        this.audio.enabled = !JSON.parse(this.$refs.muteSwitch.dataset.mute.toLowerCase());
-        this.audio.volume = parseInt(this.$refs.volumeSlider.dataset.volume);
+        this.displayState = displayState.toLowerCase() == 'on';
+        this.audio.enabled = !audioMute;
+        this.audio.volume = audioVolume;
         this.modal = document.getElementById('modal');
     },
 

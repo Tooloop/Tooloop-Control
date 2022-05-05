@@ -14,8 +14,7 @@
                 <td>
                     <div class="field has-addons">
                         <div class="control">
-                            <input class="input is-family-monospace" type="text" ref="hostname" v-model="hostname"
-                                data-hostname="{{hostname}}">
+                            <input class="input is-family-monospace" type="text" v-model="hostname">
                         </div>
                         <div class="control">
                             <button class="button is-info" v-on:click="saveHostname()">Save</button>
@@ -34,7 +33,7 @@
             <!-- Uptime -->
             <tr>
                 <th class="is-narrow has-text-right">Uptime</th>
-                <td ref="uptime" data-uptime="{{uptime}}">[[uptime]]</td>
+                <td>[[uptime]]</td>
             </tr>
 
             <!-- Timezone -->
@@ -227,6 +226,11 @@
 
 
 {% block footer_scripts %}
+<script>
+    // Initial state from server
+    const hostname = {{hostname | tojson}};
+    const uptime = {{uptime | tojson}};
+</script>
 <script src="{{ url_for('static', filename='js/system.js') }}"></script>
 <script src="{{ url_for('static', filename='js/schedule.js') }}"></script>
 {% endblock %}
