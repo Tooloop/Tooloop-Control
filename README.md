@@ -36,8 +36,7 @@ It’s a re-write of the old [Tooloop Settings Server](https://github.com/Tooloo
 
 ## Watch and compile SASS files
 
-    sass --watch --style compressed static/css/styles.scss static
-/css/styles.css
+    sass --watch --style compressed static/css/styles.scss static/css/styles.css
 
 
 # Production

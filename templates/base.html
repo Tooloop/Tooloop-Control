@@ -52,14 +52,14 @@
                         </a>
                     </li>
 
-                    <!-- <li>
-                        <a class="icon-text {% if page == 'appcenter' %}is-active{% endif %}">
+                    <li>
+                        <a href="/appcenter" class="icon-text {% if page == 'appcenter' %}is-active{% endif %}">
                             <span class="icon">
                                 <i class="fas fa-box"></i>
                             </span>
                             <span>App Center</span>
                         </a>
-                    </li> -->
+                    </li>
 
                     <li>
                         <a href="/services" class="icon-text {% if page=='services' %}is-active{% endif %}">
@@ -83,7 +83,7 @@
             </div>
         </nav>
 
-        <nav class="navbar is-fixed-bottom is-dark is-hidden-tablet">
+        <nav class="navbar is-fixed-bottom is-dark is-hidden-tablet pb-3">
             <div class="navbar-brand is-flex is-justify-content-space-around">
 
                 <a href="/dashboard" class="navbar-item is-flex is-flex-direction-column">
@@ -91,6 +91,13 @@
                         <i class="fas fa-dashboard"></i>
                     </span>
                     <span class="is-size-7">Dashboard</span>
+                </a>
+
+                <a href="/appcenter" class="navbar-item is-flex is-flex-direction-column">
+                    <span class="icon">
+                        <i class="fas fa-box"></i>
+                    </span>
+                    <span class="is-size-7">App Center</span>
                 </a>
 
                 <a href="/services" class="navbar-item is-flex is-flex-direction-column">

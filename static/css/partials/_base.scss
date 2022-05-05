@@ -48,7 +48,8 @@ hr {
         padding-bottom: 1rem;
         padding-top: 1rem;
     }
-    th, td {
+    th,
+    td {
         display: table-row;
     }
     th.has-text-right {
@@ -57,6 +58,11 @@ hr {
     }
 
     table .field {
-        margin-bottom: .75rem;
+        margin-bottom: 0.75rem;
     }
+}
+
+.switch[type="checkbox"] + label::after,
+.switch[type="checkbox"] + label::after {
+    border-radius: calc($radius / 2);
 }

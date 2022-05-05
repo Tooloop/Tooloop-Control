@@ -322,6 +322,7 @@ class System(object):
         self.setup_runtime_schedule()
 
     def set_single_schedule(self, which, schedule):
+
         if which in schedule:
             if 'enabled' in schedule[which]:
                 self.runtime_schedule[which]['enabled'] = schedule[which]['enabled']

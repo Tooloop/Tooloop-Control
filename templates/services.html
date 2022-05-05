@@ -12,7 +12,7 @@
             <tr>
                 <th class="is-narrow has-text-right">Screen sharing (VNC)</th>
                 <td>
-                    <input id="vnc-switch" v-on:change="setVnc()" v-model="vnc" name="vnc-switch" class="switch is-success" type="checkbox"
+                    <input id="vnc-switch" v-on:change="setVnc()" v-model="vnc" name="vnc-switch" class="switch  is-rounded is-success" type="checkbox"
                         ref="vncSwitch" data-state="{{services.vnc}}">
                     <label for="vnc-switch"></label>
                     <button class="button is-light ml-4" v-if="vnc" onclick="document.location='vnc://{{ip_address}}'">Connect</button>
@@ -22,7 +22,7 @@
             <tr>
                 <th class="is-narrow has-text-right">SSH</th>
                 <td>
-                    <input id="ssh-switch" v-on:change="setSsh()"  v-model="ssh" name="ssh-switch" class="switch is-success" type="checkbox"
+                    <input id="ssh-switch" v-on:change="setSsh()"  v-model="ssh" name="ssh-switch" class="switch  is-rounded is-success" type="checkbox"
                         ref="sshSwitch" data-state="{{services.ssh}}">
                     <label for="ssh-switch"></label>
                     <button class="button is-light ml-4" v-if="ssh" onclick="document.location='ssh://tooloop@{{ip_address}}'">Connect</button>
@@ -32,7 +32,7 @@
             <tr>
                 <th class="is-narrow has-text-right">Control center</th>
                 <td>
-                    <input id="control-center-switch" v-on:change="setControlCenter()" v-model="controlCenter" name="control-center-switch" class="switch is-success" type="checkbox"
+                    <input id="control-center-switch" v-on:change="setControlCenter()" v-model="controlCenter" name="control-center-switch" class="switch  is-rounded is-success" type="checkbox"
                         ref="controlCenterSwitch" data-state="{{services.control_center}}">
                     <label for="control-center-switch"></label>
                 </td>
@@ -41,7 +41,7 @@
             <tr>
                 <th class="is-narrow has-text-right">Screenshots</th>
                 <td>
-                    <input id="screenshots-switch" v-on:change="setScreenshots()" v-model="screenshots" name="screenshots-switch" class="switch is-success" type="checkbox"
+                    <input id="screenshots-switch" v-on:change="setScreenshots()" v-model="screenshots" name="screenshots-switch" class="switch  is-rounded is-success" type="checkbox"
                         ref="screenshotsSwitch" data-state="{{services.screenshot_service}}">
                     <label for="screenshots-switch"></label>
                 </td>

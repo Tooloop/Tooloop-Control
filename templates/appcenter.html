@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}App Center{% endblock %}
+
+{% block main %}
+
+<div id="appcenter">
+
+    <!-- Installed presentation -->
+    <section id="installed-app" class="section has-background-info" v-if="installedPresentation">
+        <div class="container">
+
+            <div class="columns">
+                <div class="column">
+                    <figure class="image">
+                        <img v-bind:src="'/appcenter/media/' + installedPresentation.thumbnail">
+                    </figure>
+                </div>
+
+                <div class="column content">
+                    <span class="tag is-primary">
+                        Installed presentation
+                    </span>
+
+                    <h1 class="title">[[ installedPresentation.name ]]</h1>
+
+                    <p>
+                        Version [[ installedPresentation.version ]]<br />
+                        By <a v-bind:href="installedPresentation.homepage">[[ installedPresentation.maintainer ]]</a>
+                    </p>
+
+                    <p>[[ installedPresentation.summary ]]</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="section has-background-light">
+        <div class="container">
+
+            <div class="box">
+
+                <div class="field is-grouped is-grouped-multiline">
+
+
+                    <div class="control" v-for="section in sections">
+                        <label class="checkbox is-size-7 pt-2">
+                            <input type="checkbox" :value="section.id" v-model="filter.sections">
+                            [[section.name]]
+                        </label>
+                    </div>
+
+                    <div class="control has-icons-left">
+                        <input type="text" class="input is-small" placeholder="Search" v-model="filter.query">
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-search"></i>
+                        </span>
+                    </div>
+
+                    <div class="control">
+                        <label class="checkbox is-size-7 pt-2">
+                            <input type="checkbox" v-model="filter.installedOnly">
+                            Installed only
+                        </label>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="columns is-multiline">
+
+                <div v-for="package in filteredPackages"
+                    class="column is-half-tablet is-one-third-desktop is-one-quarter-widescreen">
+                    <div class="card">
+                        <div class="card-image">
+                            <figure class="image is-16by9">
+                                <img v-bind:src="'/appcenter/media/' + package.thumbnail">
+                            </figure>
+                        </div>
+                        <div class="card-content">
+
+                            <p class="title is-5 mb-2">[[package.name]]</p>
+
+                            <div class="tags has-addons mt-1 mb-4">
+
+                                <span v-if="package.section == 'tooloop/presentation'"
+                                    class="tag is-primary">Presentation</span>
+                                <span v-else class="tag is-dark has-background-grey-light">Addon</span>
+
+                                <span v-if="package.isInstalled" class="tag is-success">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+
+                            </div>
+
+                            <div class="content">
+                                [[package.summary]]
+                            </div>
+
+                        </div>
+
+                        <footer class="card-footer is-clipped">
+                            <a v-if="package.isInstalled" href="#" class="card-footer-item has-text-primary pr-4">
+                                <span class="icon has-text-grey mr-1">
+                                    <i class="fas fa-trash"></i>
+                                </span>
+                                Uninstall
+                            </a>
+                            <a v-else href="#" class="card-footer-item pr-4">
+                                <span class="icon has-text-grey mr-1">
+                                    <i class="fas fa-download"></i>
+                                </span>
+                                Install
+                            </a>
+
+                            <a v-bind:href="'/appcenter/' + package.packageName" class="card-footer-item pr-4">
+                                <span class="icon has-text-info mr-1">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                                Details
+                            </a>
+                        </footer>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script>
+    const installedPresentation = {{ installed_presentation| tojson }};
+    const availablePackages = {{ available_packages| tojson }};
+</script>
+<script src="{{ url_for('static', filename='vendor/fuzzysort-1.2.1/fuzzysort.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/appcenter.js') }}"></script>
+{% endblock %}

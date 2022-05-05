@@ -33,12 +33,6 @@ const Schedule = Vue.createApp({
         this.getSchedule();
     },
 
-    mounted() {
-        // let schedule = this.$refs.scheduleOnLoad.dataset.schedule;
-        // console.log(schedule);
-        // this.schedule = this.$refs.scheduleOnLoad.dataset.schedule;
-    },
-
     methods: {
 
         pad(num, digits) {

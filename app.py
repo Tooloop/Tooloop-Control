@@ -23,7 +23,7 @@ from subprocess import call
 
 from controllers.system_controller import System
 from controllers.presentation_controller import Presentation
-# from controllers.appcenter_controller import AppCenter, PackageJSONEncoder
+from controllers.appcenter_controller import AppCenter, PackageJSONEncoder
 from controllers.services_controller import Services
 from controllers.screenshot_controller import Screenshots
 from utils.time_utils import *
@@ -40,7 +40,7 @@ os.environ['FLASK_ENV'] = app.config['ENVIRONMENT']
 
 system = System(app)
 presentation = Presentation()
-# appcenter = AppCenter(presentation, app)
+appcenter = AppCenter(presentation, app)
 services = Services(app)
 screenshots = Screenshots()
 
@@ -61,6 +61,29 @@ def index():
                            audio_volume=system.get_audio_volume(),
                            uptime=time_to_ISO_string(system.get_uptime()),
                            screenshot_service_running=services.is_screenshot_service_running()
+                           )
+
+
+@app.route("/appcenter")
+def render_appcenter():
+    return render_template('appcenter.html',
+                           page='appcenter',
+                           installed_presentation=appcenter.get_installed_presentation(),
+                           available_packages=appcenter.get_available_packages(),
+                           )
+
+
+@app.route("/appcenter/package/<string:package>")
+def render_package_detail(package):
+    try:
+        package_info = appcenter.get_package_info(package)
+    except Exception as e:
+        abort(400, e)
+
+    return render_template('package-detail.html',
+                           page='appcenter',
+                           package=package,
+                           installed_presentation=appcenter.get_installed_presentation()
                            )
 
 
@@ -102,7 +125,7 @@ def serve_installed_app(filename):
     return send_from_directory('installed_app/', filename)
 
 
-@app.route('/appcenter/<path:filename>')
+@app.route('/appcenter/media/<path:filename>')
 def serve_package_media(filename):
     return send_from_directory('/assets/packages/media', filename)
 
@@ -361,6 +384,7 @@ def set_vnc():
 def ssh_status():
     return jsonify({'ssh': services.is_ssh_running()})
 
+
 @app.route('/tooloop/api/v1.0/services/ssh', methods=['PUT'])
 def set_ssh():
     if not request.get_json() or not 'ssh' in request.get_json():
@@ -400,6 +424,7 @@ def set_control_center():
 def screenshot_service_status():
     return jsonify({'screenshot_service': services.is_screenshot_service_running()})
 
+
 @app.route('/tooloop/api/v1.0/services/screenshots', methods=['PUT'])
 def set_screenshot_service():
     if not request.get_json() or not 'screenshot_service' in request.get_json():
@@ -414,10 +439,98 @@ def set_screenshot_service():
     except Exception as e:
         abort(500, e)
 
+
+# appcenter
+
+@app.route('/tooloop/api/v1.0/appcenter/installed', methods=['GET'])
+def get_installed_app():
+    return jsonify(appcenter.get_installed_presentation())
+
+@app.route('/tooloop/api/v1.0/appcenter/available', methods=['GET'])
+def get_available_packages():
+    packages = appcenter.packages
+    package_array = []
+    for package in packages:
+        package_array.append(jsonify(package))
+
+    return jsonify(package_array)
+
+@app.route('/tooloop/api/v1.0/appcenter/refresh', methods=['GET'])
+def update_packages():
+    appcenter.update_packages()
+    return appcenter.packages
+
+
+
+@app.route('/tooloop/api/v1.0/appcenter/install/<string:name>', methods=['GET'])
+def install_package(name):
+    try:
+        appcenter.install(name)
+        return jsonify({ 'message' : name+' installed successfully' })
+    except InvalidUsage as e:
+        return make_response(jsonify({'message':e.message}), e.status_code)
+    except Exception as e:
+        abort(500, e)
+
+
+
+@app.route('/tooloop/api/v1.0/appcenter/uninstall/<string:name>', methods=['GET'])
+def uninstall_package(name):
+    try:
+        appcenter.uninstall(name)
+        return jsonify({ 'message' : name+' uninstalled successfully' })
+    except InvalidUsage as e:
+        return make_response(jsonify({'message':e.message}), e.status_code)
+    except Exception as e:
+        abort(500, e)
+
+@app.route('/tooloop/api/v1.0/appcenter/progress')
+def appcenter_progress():
+    def progress():
+        progress = appcenter.get_progress()
+        while True:
+            yield 'data: '+json.dumps(progress)+'\n\n'
+            if progress['status'] != 'ok':
+                break
+            time.sleep(0.1)
+
+        # lines = [
+        #     'Reading package lists… Done',
+        #     'Building dependency tree       ',
+        #     'Reading state information… Done',
+        #     'The following NEW packages will be installed:',
+        #     '  tooloop-video-player',
+        #     '0 upgraded, 1 newly installed, 0 to remove and 68 not upgraded.',
+        #     'Need to get 0 B/5,911 kB of archives.',
+        #     'After this operation, 0 B of additional disk space will be used.',
+        #     'WARNING: The following packages cannot be authenticated!',
+        #     '  tooloop-video-player',
+        #     'Authentication warning overridden.',
+        #     'Get:1 file:/assets/packages ./ tooloop-video-player 0.1.0 [5,911 kB]',
+        #     'Selecting previously unselected package tooloop-video-player.',
+        #     '(Reading database ... 168126 files and directories currently installed.)',
+        #     'Preparing to unpack .../tooloop-video-player_0.1.0_all.deb ...',
+        #     'Unpacking tooloop-video-player (0.1.0) ...',
+        #     'Setting up tooloop-video-player (0.1.0) ...'
+        # ]
+        # percent = 0.0
+        # task = 'installing'
+        
+        # for index, line in enumerate(lines):
+        #     percent = min(100, percent + 100.0/len(lines))
+        #     if index == len(lines)-1:
+        #         task = 'finished'
+        #     progress = {'percent':percent, 'status':line, 'task': task}
+        #     yield 'data: '+json.dumps(progress)+'\n\n'
+        #     time.sleep(0.1)
+
+    return Response(progress(), mimetype= 'text/event-stream')
+
 # ------------------------------------------------------------------------------
 # MAIN
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
+    app.json_encoder = PackageJSONEncoder
     app.run(
         host=app.config['HOST'],
         port=app.config['PORT']

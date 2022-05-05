@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+# Python-APT docs:
+# https://apt-team.pages.debian.net/python-apt/library/index.html
+
+from nis import cat
 from flask import Flask, render_template, abort, jsonify
 from flask.json import JSONEncoder
 
@@ -128,7 +132,7 @@ class PackageJSONEncoder(JSONEncoder):
         try:
             if isinstance(obj, Package):
                 return {
-                    'package_name': obj.shortname,
+                    'packageName': obj.shortname,
                     'version': obj.candidate.version,
                     'homepage': obj.candidate.homepage,
                     'maintainer': obj.maintainer,
@@ -136,17 +140,16 @@ class PackageJSONEncoder(JSONEncoder):
                     'name': obj.prettyname,
                     'summary': obj.candidate.summary,
                     'description': obj.candidate.description,
-                    'section': obj.section,
+                    'section': obj.candidate.section,
                     'architecture': obj.architecture(),
                     'thumbnail': obj.thumbnail,
                     'media': obj.media,
+                    'isInstalled': obj.is_installed
                     # TODO:
                     # 'pre_depends': pre_depends,
                     # 'depends': depends,
                     # 'recommends': recommends,
                     # 'suggests': suggests,
-                    # 'has_controller': has_controller,
-                    # 'has_settings': has_settings
                 }
             iterable = iter(obj)
         except TypeError:
@@ -182,9 +185,9 @@ class AppCenter(object):
         self.installed_presentation_settings_controller = None
 
         # check installed presentation
-        for presentation in self.packages['presentations']:
-            if presentation.is_installed:
-                self.installed_presentation = presentation
+        for package in self.packages:
+            if package.is_installed and package.candidate.section == 'tooloop/presentation':
+                self.installed_presentation = package
                 break
 
         if not self.installed_presentation:
@@ -208,10 +211,7 @@ class AppCenter(object):
     def get_available_packages(self):
         # lazy loading
         if not self.packages:
-            self.packages = {
-                'presentations': [],
-                'addons': []
-            }
+            self.packages = []
             # search for tooloop packages
             ps = Popen('aptitude -F"%p" search "?section(tooloop)"', shell=True, stdout=PIPE)
             output = ps.stdout.read()
@@ -219,16 +219,12 @@ class AppCenter(object):
             ps.wait()
             packages = output.splitlines()
             for index in range(len(packages)):
-                packages[index] = packages[index].replace(" ", "")
+                packages[index] = packages[index].decode().replace(" ", "")
 
             for package in packages:
                 pkg = self.apt_cache[package]
                 self.add_tooloop_metainfo(pkg)
-
-                if "tooloop/presentation" in pkg.section:
-                    self.packages['presentations'].append(pkg)
-                elif "tooloop/addon" in pkg.section:
-                    self.packages['addons'].append(pkg)
+                self.packages.append(pkg)
 
         return self.packages
 
@@ -243,7 +239,7 @@ class AppCenter(object):
             package.maintainer = package.candidate.record["Maintainer"]
         except Exception as e:
             pass
-
+        
         package.bugs = None
         try:
             package.bugs = package.candidate.record["Bugs"] 
@@ -270,7 +266,7 @@ class AppCenter(object):
             pass
 
 
-    def get_package_info(package):
+    def get_package_info(self, package):
         pass
 
 
