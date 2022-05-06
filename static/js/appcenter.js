@@ -15,6 +15,13 @@ const ControlPanel = Vue.createApp({
                 sections: ['tooloop/addon', 'tooloop/presentation'],
                 installedOnly: false,
                 query: ""
+            },
+            installer: {
+                title: "",
+                isActive: false,
+                log: "",
+                progress: 100,
+                package: null
             }
         }
     },
@@ -47,6 +54,31 @@ const ControlPanel = Vue.createApp({
         this.installedPresentation = installedPresentation;
         this.availablePackages = availablePackages;
     },
+
+    methods: {
+
+        install(package) {
+            this.showModal("Installing", package);
+            fetch(this.api + "/install/" + package.packageName)
+                .then(response => response.json())
+                .then(data => { console.log(data) });
+        },
+
+        uninstall(package) {
+            this.showModal("Uninstalling", package);
+            fetch(this.api + "/uninstall/" + package.packageName)
+                .then(response => response.json())
+                .then(data => { console.log(data) });
+        },
+
+        showModal(title, package) {
+            this.installer.isActive = true;
+            this.installer.package = package;
+            this.installer.progress = 0;
+            this.installer.title = title + " " + package.name;
+        }
+
+    }
 
 
 }).mount("#appcenter");

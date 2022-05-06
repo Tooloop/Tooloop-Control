@@ -16,9 +16,6 @@ const Screenshots = Vue.createApp({
     created() {
         this.loadLatestThumbnail();
         setInterval(this.loadLatestThumbnail, 5000);
-    },
-
-    mounted() {
         this.displayState = displayState;
         this.serviceRunning = screenshotServiceRunning;
     },

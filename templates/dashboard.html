@@ -72,7 +72,7 @@
                             <div class="field">
                                 <p class="control">
                                     <input id="display-switch" v-model="displayState" name="display-switch"
-                                        class="switch is-rounded  is-success" type="checkbox" ref="displaySwitch">
+                                        class="switch  is-success" type="checkbox" ref="displaySwitch" checked>
                                     <label for="display-switch"></label>
                                 </p>
                             </div>
@@ -87,7 +87,7 @@
                             <div class="field is-grouped">
                                 <p class="control">
                                     <input id="volume-switch" v-model="audio['enabled']" name="volume-switch"
-                                        class="switch is-rounded is-success" type="checkbox" ref="muteSwitch">
+                                        class="switch is-success" type="checkbox" ref="muteSwitch" checked>
                                     <label for="volume-switch"></label>
                                 </p>
                                 <p class="control is-flex">
@@ -187,7 +187,6 @@
     const audioVolume = {{ audio_volume | tojson }};
     const uptime = {{ uptime | tojson }};
     const screenshotServiceRunning = {{ screenshot_service_running | tojson }};
-    const usage = {{ usage | tojson }};
 </script>
 <script src="{{ url_for('static', filename='js/control-panel.js') }}"></script>
 <script src="{{ url_for('static', filename='js/screenshots.js') }}"></script>

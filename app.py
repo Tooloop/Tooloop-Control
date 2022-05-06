@@ -61,12 +61,6 @@ def index():
                            audio_volume=system.get_audio_volume(),
                            uptime=time_to_ISO_string(system.get_uptime()),
                            screenshot_service_running=services.is_screenshot_service_running(),
-                           usage={
-                                'hd': system.get_hd(),
-                                'cpu': system.get_cpu(),
-                                'gpu': system.get_gpu(),
-                                'memory': system.get_memory()
-                                }
                            )
 
 
@@ -454,12 +448,7 @@ def get_installed_app():
 
 @app.route('/tooloop/api/v1.0/appcenter/available', methods=['GET'])
 def get_available_packages():
-    packages = appcenter.packages
-    package_array = []
-    for package in packages:
-        package_array.append(jsonify(package))
-
-    return jsonify(package_array)
+    return jsonify(appcenter.packages)
 
 @app.route('/tooloop/api/v1.0/appcenter/refresh', methods=['GET'])
 def update_packages():

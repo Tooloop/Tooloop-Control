@@ -230,6 +230,7 @@
     // Initial state from server
     const hostname = {{hostname | tojson}};
     const uptime = {{uptime | tojson}};
+    const schedule = {{runtime_schedule | tojson}};
 </script>
 <script src="{{ url_for('static', filename='js/system.js') }}"></script>
 <script src="{{ url_for('static', filename='js/schedule.js') }}"></script>

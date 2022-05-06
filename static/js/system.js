@@ -13,8 +13,7 @@ const System = Vue.createApp({
         }
     },
 
-    mounted() {
-        // cache dom references
+    created() {
         this.hostname = hostname;
         let uptimeDate = new Date(uptime);
         this.uptime = "running since " + (uptimeDate.toDateString() == new Date().toDateString() ? "" : uptimeDate.toLocaleDateString() + ", ") + uptimeDate.toLocaleTimeString();

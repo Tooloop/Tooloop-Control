@@ -16,6 +16,9 @@
         <nav id="menu" role="navigation" aria-label="main navigation">
             <div class="menu has-background-dark" v-bind:class="{'is-active': isActive}">
 
+                {# use an AVAHI service to advertise the Control Center #}
+                {# and then list all found servers using the zeroconf lib #}
+                {# https://pypi.org/project/zeroconf/ #}
                 {#
                 <!-- Computer select -->
                 <div class="field has-addons mx-5 mt-3">

@@ -12,9 +12,15 @@
             left 0.3s $easing,
             box-shadow 0.3s $easing;
         
+        .menu-list {
+            position: sticky;
+            top: 0;
+        }
+
         .li {
             padding: $gap;
         }
+
         
         @include mobile {
             display: none;

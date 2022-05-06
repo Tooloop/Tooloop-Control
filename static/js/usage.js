@@ -57,15 +57,18 @@ const Usage = Vue.createApp({
                     },
                     height: '240px',
                 },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val.toFixed(1) + " %"
+                    }
+                },
                 series: [],
                 labels: ['Free', 'Data', 'Logs', 'Packages', 'Presentation', 'Screenshots'],
                 noData: { text: 'Loading...' },
                 legend: { position: 'right' },
             }
         }
-    },
-
-    created() {
     },
 
     mounted() {
@@ -98,12 +101,17 @@ const Usage = Vue.createApp({
         // =====================================================================
         // Update data
         // =====================================================================
-        this.pushData(usage);
+        let controller = new AbortController();
         setInterval(() => {
-            fetch(this.api)
+            fetch(this.api, { signal: controller.signal })
                 .then(response => response.json())
                 .then(data => this.pushData(data));
         }, 1000);
+        window.onunload = function () {
+            console.log("Bye");
+            controller.abort();
+        }
+
     },
 
     methods: {
@@ -169,14 +177,19 @@ const Usage = Vue.createApp({
             // ---------------------------------------------------------
             // HD usage
             // ---------------------------------------------------------
+
             this.hdUsageChart.updateSeries([
-                105089261568, // "free"
-                4096, // "data"
-                4096, // "logs"
-                4096, // "packages"
-                12288, // "presentation"
-                352727040  // "screenshots"
+                this.toGb(data.hd.size - data.hd.data - data.hd.logs - data.hd.presentation - data.hd.screenshots),
+                this.toGb(data.hd.data),
+                this.toGb(data.hd.logs),
+                this.toGb(data.hd.packages),
+                this.toGb(data.hd.presentation),
+                this.toGb(data.hd.screenshots)
             ], false);
+        },
+
+        toGb(bytes) {
+            return (bytes / (1000 * 1000 * 1000));
         }
     },
 

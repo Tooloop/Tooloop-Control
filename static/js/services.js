@@ -5,14 +5,14 @@ const Services = Vue.createApp({
     data() {
         return {
             api: '/tooloop/api/v1.0/services',
-            vnc: false,
-            ssh: false,
-            controlCenter: false,
-            screenshots: false
+            vnc: true,
+            ssh: true,
+            controlCenter: true,
+            screenshots: true
         }
     },
 
-    mounted() {
+    created() {
         this.setServices(services);
     },
 

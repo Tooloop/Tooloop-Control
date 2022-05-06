@@ -27,7 +27,6 @@ from utils.exceptions import *
 from pprint import pprint
 
 
-
 # ------------------------------------------------------------------------------
 # DictFetchProgress
 # ------------------------------------------------------------------------------
@@ -87,7 +86,6 @@ class DictFetchProgress(apt.progress.base.AcquireProgress):
         return self.progress_dict['status'] == 'ok'
 
 
-
 # ------------------------------------------------------------------------------
 # DictInstallProgress
 # ------------------------------------------------------------------------------
@@ -120,7 +118,6 @@ class DictInstallProgress(apt.progress.base.InstallProgress):
         apt.progress.base.InstallProgress.update_interface(self)
         # usefull to e.g. redraw a GUI
         time.sleep(0.1)
-
 
 
 # ------------------------------------------------------------------------------
@@ -159,12 +156,12 @@ class PackageJSONEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 
-
 # ------------------------------------------------------------------------------
 # AppCenter
 # ------------------------------------------------------------------------------
 class AppCenter(object):
     """Holds information of available packages and manages their installation."""
+
     def __init__(self, presentation_controller, flask):
         super(AppCenter, self).__init__()
         self.presentation_controller = presentation_controller
@@ -174,27 +171,21 @@ class AppCenter(object):
         self.packages = None
         self.get_available_packages()
         self.progress = {
-            'percent':0,
+            'percent': 0,
             'step': '',
             'task': '',
-            'status':'ok'
-            }
+            'status': 'ok'
+        }
 
         # get information of installed packages
-        self.installed_presentation = None
-        self.installed_presentation_settings_controller = None
-
-        # check installed presentation
-        for package in self.packages:
-            if package.is_installed and package.candidate.section == 'tooloop/presentation':
-                self.installed_presentation = package
-                break
-
-        if not self.installed_presentation:
-            return
+        self.installed_presentation = self.get_installed_presentation()
 
         # TODO
         # import custom settings controller
+
+        # if not self.installed_presentation:
+        #     return
+
         # if self.installed_presentation.has_controller:
         #     installed_app_module = __import__('installed_app.controller', fromlist=['InstalledApp'])
         #     InstalledApp = getattr(installed_app_module, 'InstalledApp')
@@ -213,7 +204,8 @@ class AppCenter(object):
         if not self.packages:
             self.packages = []
             # search for tooloop packages
-            ps = Popen('aptitude -F"%p" search "?section(tooloop)"', shell=True, stdout=PIPE)
+            ps = Popen('aptitude -F"%p" search "?section(tooloop)"',
+                       shell=True, stdout=PIPE)
             output = ps.stdout.read()
             ps.stdout.close()
             ps.wait()
@@ -229,7 +221,9 @@ class AppCenter(object):
         return self.packages
 
     def get_installed_presentation(self):
-        return self.installed_presentation
+        for package in self.packages:
+            if package.is_installed and package.candidate.section == 'tooloop/presentation':
+                return package
 
     def get_installed_presentation_settings_controller(self):
         return self.installed_presentation_settings_controller
@@ -239,10 +233,10 @@ class AppCenter(object):
             package.maintainer = package.candidate.record["Maintainer"]
         except Exception as e:
             pass
-        
+
         package.bugs = None
         try:
-            package.bugs = package.candidate.record["Bugs"] 
+            package.bugs = package.candidate.record["Bugs"]
         except Exception as e:
             pass
 
@@ -265,45 +259,46 @@ class AppCenter(object):
         except Exception as e:
             pass
 
-
     def get_package_info(self, package):
         pass
 
-
     def update_packages(self):
         # update local repository
-        ps = Popen('/opt/tooloop/scripts/tooloop-update-packages', shell=True, stdout=PIPE)
+        ps = Popen('/opt/tooloop/scripts/tooloop-update-packages',
+                   shell=True, stdout=PIPE)
         output = ps.stdout.read()
         ps.stdout.close()
         ps.wait()
-
 
     def install(self, package):
         pkg = self.apt_cache[package]
         self.add_tooloop_metainfo(pkg)
 
         # only handle tooloop packages
-        if not "tooloop" in pkg.section:
+        if not "tooloop" in pkg.candidate.section:
             # 403 – Forbidden
-            raise InvalidUsage(package+" is not a tooloop package", status_code=403);
+            raise InvalidUsage(
+                package+" is not a tooloop package", status_code=403)
 
-        # package is apresentation and there is a presentation already
-        if "tooloop/presentation" in pkg.section and self.installed_presentation:
+        # package is a presentation and there is a presentation already
+        if "tooloop/presentation" in pkg.candidate.section and self.installed_presentation:
             # 409 – Conflict
-            raise InvalidUsage("Only one presentation can be installed at a time", status_code=409);
+            raise InvalidUsage(
+                "Only one presentation can be installed at a time", status_code=409)
 
         # package is installed already
         if pkg.is_installed:
             # 304 – Not Modified
-            raise InvalidUsage(package + " is already installed", status_code=400);
+            raise InvalidUsage(
+                package + " is already installed", status_code=304)
 
         pkg.mark_install()
 
         try:
             # stop running presentation
-            if "tooloop/presentation" in pkg.section:
+            if "tooloop/presentation" in pkg.candidate.section:
                 self.presentation_controller.stop()
-            
+
             # install
             # self.progress = {
             #     'percent':0,
@@ -312,8 +307,9 @@ class AppCenter(object):
             #     'status':'ok'
             #     }
             # print self.progress
-            
-            result = self.apt_cache.commit(DictFetchProgress(self.progress), DictInstallProgress(self.progress)) # True if all was fine
+
+            result = self.apt_cache.commit(DictFetchProgress(
+                self.progress), DictInstallProgress(self.progress))  # True if all was fine
             self.apt_cache.update()
             self.apt_cache.open()
 
@@ -321,15 +317,14 @@ class AppCenter(object):
             # if isfile(self.root_path+'/installed_app/controller.py'):
             #     self.touch(self.root_path+'/installed_app/__init__.py')
 
-
-            if "tooloop/presentation" in pkg.section:
+            if "tooloop/presentation" in pkg.candidate.section:
                 self.installed_presentation = pkg
                 # restart presentation
                 self.presentation_controller.start()
 
         except Exception as arg:
-            raise Exception("Sorry, package installation failed [{err}]".format(err=str(arg)))
-
+            raise Exception(
+                "Sorry, package installation failed.\n{err}".format(err=str(arg)))
 
     def uninstall(self, package):
         pkg = self.apt_cache[package]
@@ -341,22 +336,22 @@ class AppCenter(object):
                 for dep in dep_list:
                     if package in dep.name:
                         # 409 – Conflict
-                        raise InvalidUsage('Cannot uninstall '+package+ ' because current presentation '+self.installed_presentation.name+' depends on it.', status_code=409);
+                        raise InvalidUsage('Cannot uninstall '+package + ' because current presentation ' +
+                                           self.installed_presentation.name+' depends on it.', status_code=409)
             # if it is the current presentation
             if pkg.name == self.installed_presentation.name:
                 self.presentation_controller.stop()
                 self.installed_presentation = None
 
-
         # only handle tooloop packages
-        if not "tooloop" in pkg.section:
-            raise Exception(package+" is not a tooloop package");
+        if not "tooloop" in pkg.candidate.section:
+            raise Exception(package+" is not a tooloop package")
 
         if pkg.is_installed:
             pkg.mark_delete()
         else:
             # 304 – Not Modified
-            raise InvalidUsage(package + " is not installed", status_code=400);
+            raise InvalidUsage(package + " is not installed", status_code=400)
 
         try:
             # self.progress = {
@@ -366,19 +361,16 @@ class AppCenter(object):
             #     'status':'ok'
             #     }
             # print self.progress
-            result = self.apt_cache.commit(DictFetchProgress(self.progress), DictInstallProgress(self.progress)) # True if all was fine
+            result = self.apt_cache.commit(DictFetchProgress(
+                self.progress), DictInstallProgress(self.progress))  # True if all was fine
             self.apt_cache.update()
             self.apt_cache.open()
         except Exception as arg:
-            raise Exception("Sorry, purging package failed [{err}]".format(err=str(arg)))
-
+            raise Exception(
+                "Sorry, purging package failed [{err}]".format(err=str(arg)))
 
     def get_progress(self):
         return self.progress
-
-
-
-
 
     # def copy_files(self, src_dir, dest_dir):
     #     for file in listdir(src_dir):

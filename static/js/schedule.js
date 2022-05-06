@@ -30,7 +30,7 @@ const Schedule = Vue.createApp({
     },
 
     created() {
-        this.getSchedule();
+        this.schedule = schedule;
     },
 
     methods: {
