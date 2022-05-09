@@ -6,6 +6,7 @@ if [ $EUID != 0 ]; then
     exit 1
 fi
 
+# install system packages
 apt install -y \
     python3-pip \
     python3-augeas \
@@ -13,6 +14,8 @@ apt install -y \
     python3-venv \
     aptitude
 
-python3 -m venv --system-site-packages venv
-. venv/bin/activate
-pip install Flask pexpect python-crontab
+# create virtual environment
+python3 -m venv --system-site-packages /opt/tooloop/control-center/venv
+
+# install site packages
+/opt/tooloop/control-center/venv/bin/pip install Flask pexpect python-crontab
