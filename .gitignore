@@ -128,5 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-data/runtimeSchedule.json
+data/runtime-schedule.json
 .DS_Store
+.gitignore
