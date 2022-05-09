@@ -308,8 +308,10 @@ class AppCenter(object):
             #     }
             # print self.progress
 
-            result = self.apt_cache.commit(DictFetchProgress(
-                self.progress), DictInstallProgress(self.progress))  # True if all was fine
+            result = self.apt_cache.commit(
+                DictFetchProgress(self.progress),
+                DictInstallProgress(self.progress),
+                allow_unauthenticated=True)
             self.apt_cache.update()
             self.apt_cache.open()
 
@@ -361,8 +363,10 @@ class AppCenter(object):
             #     'status':'ok'
             #     }
             # print self.progress
-            result = self.apt_cache.commit(DictFetchProgress(
-                self.progress), DictInstallProgress(self.progress))  # True if all was fine
+            result = self.apt_cache.commit(
+                DictFetchProgress(self.progress),
+                DictInstallProgress(self.progress),
+                allow_unauthenticated=True)  # True if all was fine
             self.apt_cache.update()
             self.apt_cache.open()
         except Exception as arg:
