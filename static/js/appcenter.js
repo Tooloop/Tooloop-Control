@@ -4,7 +4,7 @@ const ControlPanel = Vue.createApp({
 
     data() {
         return {
-            api: '/tooloop/api/v1.0/appcenter',
+            api: '/tooloop/api/v1.0',
             installedPresentation: null,
             availablePackages: [],
             sections: [
@@ -65,7 +65,7 @@ const ControlPanel = Vue.createApp({
             this.showModal("Installing", package);
 
             // Trigger installation
-            fetch(this.api + "/install/" + package.packageName)
+            fetch(this.api + "/appcenter/install/" + package.packageName)
                 .then(response => response.json())
                 .then(data => { this.finishInstallation(data.message) });
 
@@ -79,7 +79,7 @@ const ControlPanel = Vue.createApp({
             this.showModal("Uninstalling", package);
 
             // Trigger uninstallation
-            fetch(this.api + "/uninstall/" + package.packageName)
+            fetch(this.api + "/appcenter/uninstall/" + package.packageName)
                 .then(response => response.json())
                 .then(data => { this.finishInstallation(data.message) });
 
@@ -89,9 +89,19 @@ const ControlPanel = Vue.createApp({
         },
 
         updatePackages() {
-            fetch(this.api + "/available")
+            fetch(this.api + '/reload')
                 .then(response => response.json())
-                .then(data => this.availablePackages = data);
+                .then(data => {
+                    console.log(data.message)
+
+                    fetch(this.api + "/appcenter/installed")
+                        .then(response => response.json())
+                        .then(data => this.installedPresentation = data);
+
+                    fetch(this.api + "/appcenter/available")
+                        .then(response => response.json())
+                        .then(data => this.availablePackages = data);
+                });
         },
 
         showModal(title, package) {
@@ -119,7 +129,7 @@ const ControlPanel = Vue.createApp({
             this.installer.isFinished = true;
 
             this.updatePackages();
-        }
+        },
 
     }
 

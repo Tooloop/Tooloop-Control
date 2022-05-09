@@ -19,6 +19,7 @@ import os
 from sys import platform
 from pprint import pprint
 from subprocess import call
+from pathlib import Path
 
 
 from controllers.system_controller import System
@@ -133,6 +134,12 @@ def serve_package_media(filename):
 # ------------------------------------------------------------------------------
 # RESTFUL API
 # ------------------------------------------------------------------------------
+
+@app.route('/tooloop/api/v1.0/reload', methods=['GET'])
+def reload():
+    Path(os.path.join('data', 'reload')).touch()
+    return jsonify({'message':'Control Center reloaded'})
+
 
 # System
 
@@ -489,36 +496,6 @@ def appcenter_progress():
                 break
             time.sleep(0.1)
 
-        # lines = [
-        #     'Reading package lists… Done',
-        #     'Building dependency tree       ',
-        #     'Reading state information… Done',
-        #     'The following NEW packages will be installed:',
-        #     '  tooloop-video-player',
-        #     '0 upgraded, 1 newly installed, 0 to remove and 68 not upgraded.',
-        #     'Need to get 0 B/5,911 kB of archives.',
-        #     'After this operation, 0 B of additional disk space will be used.',
-        #     'WARNING: The following packages cannot be authenticated!',
-        #     '  tooloop-video-player',
-        #     'Authentication warning overridden.',
-        #     'Get:1 file:/assets/packages ./ tooloop-video-player 0.1.0 [5,911 kB]',
-        #     'Selecting previously unselected package tooloop-video-player.',
-        #     '(Reading database ... 168126 files and directories currently installed.)',
-        #     'Preparing to unpack .../tooloop-video-player_0.1.0_all.deb ...',
-        #     'Unpacking tooloop-video-player (0.1.0) ...',
-        #     'Setting up tooloop-video-player (0.1.0) ...'
-        # ]
-        # percent = 0.0
-        # task = 'installing'
-        
-        # for index, line in enumerate(lines):
-        #     percent = min(100, percent + 100.0/len(lines))
-        #     if index == len(lines)-1:
-        #         task = 'finished'
-        #     progress = {'percent':percent, 'status':line, 'task': task}
-        #     yield 'data: '+json.dumps(progress)+'\n\n'
-        #     time.sleep(0.1)
-
     return Response(progress(), mimetype= 'text/event-stream')
 
 # ------------------------------------------------------------------------------
@@ -528,5 +505,6 @@ if __name__ == "__main__":
     app.json_encoder = PackageJSONEncoder
     app.run(
         host=app.config['HOST'],
-        port=app.config['PORT']
+        port=app.config['PORT'],
+        extra_files=[os.path.join(app.root_path, 'data', 'reload')]
     )
