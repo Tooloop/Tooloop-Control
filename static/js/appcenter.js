@@ -106,6 +106,7 @@ const ControlPanel = Vue.createApp({
 
         showModal(title, package) {
             this.installer.package = package;
+            this.installer.isFinished = false;
             this.installer.progress = 0;
             this.installer.title = title + " " + package.name;
             this.installer.log = "";
