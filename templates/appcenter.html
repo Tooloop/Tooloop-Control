@@ -104,14 +104,13 @@
 
                         <footer class="card-footer is-clipped">
                             <a v-if="package.isInstalled" href="#" class="card-footer-item has-text-primary pr-4"
-                            v-on:click="uninstall(package)">
+                                v-on:click="uninstall(package)">
                                 <span class="icon has-text-grey mr-1">
                                     <i class="fas fa-trash"></i>
                                 </span>
                                 Uninstall
                             </a>
-                            <a v-else href="#" class="card-footer-item pr-4"
-                                v-on:click="install(package)">
+                            <a v-else href="#" class="card-footer-item pr-4" v-on:click="install(package)">
                                 <span class="icon has-text-grey mr-1">
                                     <i class="fas fa-download"></i>
                                 </span>
@@ -134,7 +133,7 @@
     </section>
 
     <div class="modal" v-bind:class="{'is-active': installer.isActive}">
-        <div class="modal-background"></div>
+        <div class="modal-background" v-on:click=""></div>
         <div class="modal-card is-flex-grow-1">
             <header class="modal-card-head">
                 <p class="modal-card-title">[[installer.title]]</p>
@@ -150,8 +149,9 @@
                             %</progress>
                     </div>
                     <div class="control">
-                        <button class="button" v-bind:class="{'is-loading': installer.progress < 100, 'is-success': installer.progress >= 100}"
-                            style="width: 6rem;" :disabled="installer.progress < 100">Close</button>
+                        <button class="button" style="width: 6rem;"
+                            v-bind:class="{'is-loading': installer.progress < 100, 'is-success': installer.isFinished}"
+                            v-on:click="installer.isActive = false" :disabled="!installer.isFinished">Close</button>
                     </div>
                 </div>
             </footer>
@@ -168,6 +168,6 @@
     const installedPresentation = {{ installed_presentation| tojson }};
     const availablePackages = {{ available_packages| tojson }};
 </script>
-<script src=" {{ url_for('static', filename='vendor/fuzzysort-1.2.1/fuzzysort.min.js' ) }}"></script>
-                            <script src="{{ url_for('static', filename='js/appcenter.js') }}"></script>
-                            {% endblock %}
+<script src=" {{ url_for('static', filename='vendor/fuzzysort-1.9.0/fuzzysort.min.js' ) }}"></script>
+<script src="{{ url_for('static', filename='js/appcenter.js') }}"></script>
+{% endblock %}

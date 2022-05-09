@@ -17,11 +17,14 @@ const ControlPanel = Vue.createApp({
                 query: ""
             },
             installer: {
-                title: "",
                 isActive: false,
+                progress: 0,
+                isFinished: false,
+                title: "",
+                package: null,
                 log: "",
-                progress: 100,
-                package: null
+                lastMessage: "",
+                progressEventSource: null
             }
         }
     },
@@ -58,24 +61,64 @@ const ControlPanel = Vue.createApp({
     methods: {
 
         install(package) {
+            // Show modal
             this.showModal("Installing", package);
+
+            // Trigger installation
             fetch(this.api + "/install/" + package.packageName)
                 .then(response => response.json())
-                .then(data => { console.log(data) });
+                .then(data => { this.finishInstallation(data.message) });
+
+            // Listen to progress updates
+            this.installer.progressEventSource = new EventSource("/tooloop/api/v1.0/appcenter/progress");
+            this.installer.progressEventSource.onmessage = this.updateProgress;
         },
 
         uninstall(package) {
+            // Show modal
             this.showModal("Uninstalling", package);
+
+            // Trigger uninstallation
             fetch(this.api + "/uninstall/" + package.packageName)
                 .then(response => response.json())
-                .then(data => { console.log(data) });
+                .then(data => { this.finishInstallation(data.message) });
+
+            // Listen to progress updates
+            this.installer.progressEventSource = new EventSource("/tooloop/api/v1.0/appcenter/progress");
+            this.installer.progressEventSource.onmessage = this.updateProgress;
+        },
+
+        updatePackages() {
+            fetch(this.api + "/available")
+                .then(response => response.json())
+                .then(data => this.availablePackages = data);
         },
 
         showModal(title, package) {
-            this.installer.isActive = true;
             this.installer.package = package;
             this.installer.progress = 0;
             this.installer.title = title + " " + package.name;
+            this.installer.log = "";
+            this.installer.lastMessage = "";
+            this.installer.isActive = true;
+        },
+
+        updateProgress(event) {
+            progress = JSON.parse(event.data);
+            this.installer.progress = progress.percent;
+
+            if (this.installer.lastMessage != progress.task) {
+                this.installer.lastMessage = progress.task;
+                this.installer.log += "\n" + progress.task;
+            }
+        },
+
+        finishInstallation(message) {
+            this.installer.progressEventSource.close();
+            this.installer.log += "\n\n" + message;
+            this.installer.isFinished = true;
+
+            this.updatePackages();
         }
 
     }
