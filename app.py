@@ -137,8 +137,10 @@ def serve_package_media(filename):
 
 @app.route('/tooloop/api/v1.0/reload', methods=['GET'])
 def reload():
-    Path(os.path.join('data', 'reload')).touch()
-    return jsonify({'message':'Control Center reloaded'})
+    # touching data/reload will trigger the auto reloader
+    # TODO: change to proper reloading as this only works in development mode
+    Path(os.path.join(app.root_path, 'data', 'reload')).touch()
+    return jsonify({'message': 'Control Center reloaded'})
 
 
 # System
@@ -453,9 +455,11 @@ def set_screenshot_service():
 def get_installed_app():
     return jsonify(appcenter.get_installed_presentation())
 
+
 @app.route('/tooloop/api/v1.0/appcenter/available', methods=['GET'])
 def get_available_packages():
     return jsonify(appcenter.packages)
+
 
 @app.route('/tooloop/api/v1.0/appcenter/refresh', methods=['GET'])
 def update_packages():
@@ -463,28 +467,27 @@ def update_packages():
     return appcenter.packages
 
 
-
 @app.route('/tooloop/api/v1.0/appcenter/install/<string:name>', methods=['GET'])
 def install_package(name):
     try:
         appcenter.install(name)
-        return jsonify({ 'message' : name+' installed successfully' })
+        return jsonify({'message': name+' installed successfully'})
     except InvalidUsage as e:
-        return make_response(jsonify({'message':e.message}), e.status_code)
+        return make_response(jsonify({'message': e.message}), e.status_code)
     except Exception as e:
         abort(500, e)
-
 
 
 @app.route('/tooloop/api/v1.0/appcenter/uninstall/<string:name>', methods=['GET'])
 def uninstall_package(name):
     try:
         appcenter.uninstall(name)
-        return jsonify({ 'message' : name+' uninstalled successfully' })
+        return jsonify({'message': name+' uninstalled successfully'})
     except InvalidUsage as e:
-        return make_response(jsonify({'message':e.message}), e.status_code)
+        return make_response(jsonify({'message': e.message}), e.status_code)
     except Exception as e:
         abort(500, e)
+
 
 @app.route('/tooloop/api/v1.0/appcenter/progress')
 def appcenter_progress():
@@ -496,7 +499,8 @@ def appcenter_progress():
                 break
             time.sleep(0.1)
 
-    return Response(progress(), mimetype= 'text/event-stream')
+    return Response(progress(), mimetype='text/event-stream')
+
 
 # ------------------------------------------------------------------------------
 # MAIN
