@@ -10,25 +10,26 @@
         <div class="container">
 
             <div class="columns">
-                <div class="column">
+                <div class="column is-half is-two-thirds-desktop is-half-widescreen is-offset-1-widescreen">
                     <figure class="image">
                         <img v-bind:src="'/appcenter/media/' + installedPresentation.thumbnail">
                     </figure>
                 </div>
 
-                <div class="column content">
-                    <span class="tag is-primary">
+                <div class="column is-flex is-flex-direction-column is-justify-content-center is-align-items-start">
+                    <span class="tag is-primary block">
                         Installed presentation
                     </span>
 
                     <h1 class="title">[[ installedPresentation.name ]]</h1>
+                    <h2 class="subtitle">By <a v-bind:href="installedPresentation.homepage">[[ installedPresentation.maintainer ]]</a></h2>
 
-                    <p>
-                        Version [[ installedPresentation.version ]]<br />
-                        By <a v-bind:href="installedPresentation.homepage">[[ installedPresentation.maintainer ]]</a>
-                    </p>
-
-                    <p>[[ installedPresentation.summary ]]</p>
+                    <div class="block content">[[ installedPresentation.summary ]]</div>
+                    
+                    <a class="button is-outlined is-dark is-small"
+                        v-bind:href="'/appcenter/' + installedPresentation.packageName">
+                        Details
+                    </a>
                 </div>
             </div>
 

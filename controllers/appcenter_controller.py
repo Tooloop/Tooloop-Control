@@ -259,8 +259,8 @@ class AppCenter(object):
         except Exception as e:
             pass
 
-    def get_package_info(self, package):
-        pass
+    def get_package(self, package):
+        return self.apt_cache[package]
 
     def update_packages(self):
         # update local repository

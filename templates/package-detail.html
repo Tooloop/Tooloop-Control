@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}App Center{% endblock %}
+
+{% block main %}
+<div id="appcenter">
+
+    <section class="section">
+        <div class="container">
+            <h1 class="title">{{package.prettyname}}</h1>
+            <div class="columns">
+
+                <div class="column is-half is-two-thirds-widescreen">
+                    {% if package.media|length > 0 %}
+                    <div class="gallery">
+                        <div class="gallery-body has-background-info">
+                            {% for media in package.media %}
+                            <img style="display: block;" src="/appcenter/media/{{media}}">
+                            {% endfor %}
+                        </div>
+                        <!-- <span class="icon has-text-light gallery-next"><i class="fas fa-angle-right"></i></span>
+                        <span class="icon has-text-light gallery-previous"><i class="fas fa-angle-left"></i></span> -->
+                    </div>
+                    {% else %}
+                    <figure class="image block">
+                        <img src="/appcenter/media/{{package.thumbnail}}">
+                    </figure>
+                    {% endif %}
+
+
+                    <div class="content block">
+                        {{package.candidate.description}}
+                    </div>
+                </div>
+
+
+                <div class="column">
+
+                    <div class="box is-shadowless has-background-light">
+
+                        <table class="table is-fullwidth is-hoverable">
+                            <tr>
+                                <th>Type</th>
+                                <td>
+                                    {% if 'presentation' in package.candidate.section %}
+                                    Presentation
+                                    {% elif 'addon' in package.candidate.section %}
+                                    Addon
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Version</th>
+                                <td>{{package.candidate.version}}</td>
+                            </tr>
+                            <tr>
+                                <th>Developer</th>
+                                <td>
+                                    <a href="{{package.candidate.homepage}}">{{package.maintainer}}</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Support</th>
+                                <td><a href="{{package.bugs}}">{{package.bugs}}</a></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    {% if package.is_installed %}
+                    <button class="button is-danger is-fullwidth block">
+                        <span class="icon is-small mr-1">
+                            <i class="fas fa-trash"></i>
+                        </span>
+                        Uninstall
+                    </button>
+                    {% else %}
+                    <button class="button is-link is-fullwidth block">
+                        <span class="icon is-small mr-1">
+                            <i class="fas fa-download"></i>
+                        </span>
+                        Install
+                    </button>
+                    {% endif %}
+
+                </div>
+            </div>
+    </section>
+</div>
+{% endblock %}
+
+
+{% block footer_scripts %}{% endblock %}

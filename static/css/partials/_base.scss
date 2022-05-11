@@ -41,6 +41,10 @@ hr {
     flex-grow: 4;
 }
 
+.table {
+    background-color: transparent;
+}
+
 @include mobile {
     tr {
         display: table;

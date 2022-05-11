@@ -74,16 +74,11 @@ def render_appcenter():
                            )
 
 
-@app.route("/appcenter/package/<string:package>")
+@app.route("/appcenter/<string:package>")
 def render_package_detail(package):
-    try:
-        package_info = appcenter.get_package_info(package)
-    except Exception as e:
-        abort(400, e)
-
     return render_template('package-detail.html',
                            page='appcenter',
-                           package=package,
+                           package=appcenter.get_package(package),
                            installed_presentation=appcenter.get_installed_presentation()
                            )
 
