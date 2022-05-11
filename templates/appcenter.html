@@ -103,21 +103,21 @@
                         </div>
 
                         <footer class="card-footer is-clipped">
-                            <a v-if="package.isInstalled" href="#" class="card-footer-item has-text-primary pr-4"
+                            <a v-if="package.isInstalled" class="card-footer-item has-text-primary pr-4"
                                 v-on:click="uninstall(package)">
                                 <span class="icon has-text-grey mr-1">
                                     <i class="fas fa-trash"></i>
                                 </span>
                                 Uninstall
                             </a>
-                            <a v-else href="#" class="card-footer-item pr-4" v-on:click="install(package)">
+                            <a v-else class="card-footer-item pr-4" v-on:click="install(package)">
                                 <span class="icon has-text-grey mr-1">
                                     <i class="fas fa-download"></i>
                                 </span>
                                 Install
                             </a>
 
-                            <a v-bind:href="'/appcenter/' + package.packageName" class="card-footer-item pr-4">
+                            <a v-bind:href="'/appcenter/' + package.packageName" class="card-footer-item has-text-grey pr-4">
                                 <span class="icon has-text-info mr-1">
                                     <i class="fas fa-info-circle"></i>
                                 </span>
@@ -132,26 +132,29 @@
         </div>
     </section>
 
-    <div class="modal" v-bind:class="{'is-active': installer.isActive}">
-        <div class="modal-background" v-on:click=""></div>
-        <div class="modal-card is-flex-grow-1">
+    <div id="installer" class="modal" v-bind:class="{'is-active': installer.isActive}">
+        <div class="modal-background"></div>
+        <div class="modal-card">
             <header class="modal-card-head">
                 <p class="modal-card-title">[[installer.title]]</p>
             </header>
-            <section class="modal-card-body p-0 has-background-dark">
-                <pre class="has-background-dark has-text-light">[[installer.log]]</pre>
+            <section ref="log" class="modal-card-body has-background-dark">
+                <code class="has-background-dark has-text-grey-light p-0" v-html="installer.log"></code>
             </section>
             <footer class="modal-card-foot">
                 <div class="field is-grouped is-flex-grow-1">
 
                     <div class="control is-expanded is-flex is-align-items-center">
-                        <progress class="progress" :value="installer.progress" max="100">[[installer.progress]]
+                        <progress class="progress"
+                            v-bind:class="{'is-success': installer.isFinished && installer.success, 'is-danger': installer.isFinished && !installer.success}"
+                            v-bind:value="installer.progress" max="100">[[installer.progress]]
                             %</progress>
                     </div>
                     <div class="control">
-                        <button class="button" style="width: 6rem;"
-                            v-bind:class="{'is-loading': installer.progress < 100, 'is-success': installer.isFinished}"
-                            v-on:click="installer.isActive = false" :disabled="!installer.isFinished">Close</button>
+                        <button class="button" style="width: 6rem;" 
+                            v-bind:class="{'is-loading': !installer.isFinished}"
+                            v-bind:disabled="!installer.isFinished"
+                            v-on:click="installer.isActive = false">Close</button>
                     </div>
                 </div>
             </footer>
