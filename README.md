@@ -29,7 +29,7 @@ It’s a re-write of the old [Tooloop Settings Server](https://github.com/Tooloo
 
 ## Run development
 
-    sudo python3 app.py
+    sudo ./venv/bin/python app.py
 
 
 # Development
