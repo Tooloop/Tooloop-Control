@@ -57,7 +57,8 @@ hr {
         border-bottom: none;
     }
 
-    table .field {
+    td > .field,
+    td > .button {
         margin-bottom: 0.75rem;
     }
 }

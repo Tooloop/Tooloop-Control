@@ -2,4 +2,14 @@
     td, th {
         border: none;
     }
+
+    @include mobile {
+        th {
+            border-bottom: 0.75rem solid transparent;
+            border-top: 1.5rem solid transparent;
+        }
+        tr:first-child th {
+            border-top: none;
+        }
+    }
 }
