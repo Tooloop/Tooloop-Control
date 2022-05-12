@@ -9,6 +9,7 @@
 """
 
 from flask import Flask, jsonify, render_template, request, after_this_request, abort, send_from_directory, make_response, Response
+from flaskext.markdown import Markdown
 from jinja2 import ChoiceLoader, FileSystemLoader
 
 # import augeas
@@ -501,6 +502,7 @@ def appcenter_progress():
 # MAIN
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
+    Markdown(app)
     app.json_encoder = PackageJSONEncoder
     app.run(
         host=app.config['HOST'],
