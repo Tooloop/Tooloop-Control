@@ -30,6 +30,12 @@ hr {
     height: 1px;
 }
 
+.title {
+    word-break: unset;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
 @include mobile {
     .columns.is-reversed {
         flex-direction: column-reverse;
@@ -52,25 +58,28 @@ hr {
         padding-bottom: 1rem;
         padding-top: 1rem;
     }
+
     th,
     td {
         display: table-row;
     }
+
     th.has-text-right {
         text-align: left !important;
         border-bottom: none;
     }
 
-    td > .field,
-    td > .button {
+    td>.field,
+    td>.button {
         margin-bottom: 0.75rem;
     }
 }
 
-.switch[type="checkbox"] + label::after,
-.switch[type="checkbox"] + label::after {
+.switch[type="checkbox"]+label::after,
+.switch[type="checkbox"]+label::after {
     border-radius: calc($switch-radius / 2);
 }
-.switch[type="checkbox"]:checked + label::after {
+
+.switch[type="checkbox"]:checked+label::after {
     left: calc(1.25rem + 1.25rem / 2 - 2 * $switch-paddle-offset);
 }
