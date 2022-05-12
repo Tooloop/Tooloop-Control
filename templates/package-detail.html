@@ -5,9 +5,11 @@
 {% block main %}
 <div id="appcenter">
 
-    <section class="section">
+    <section class="section has-background-info">
         <div class="container">
-            <h1 class="title">{{package.prettyname}}</h1>
+
+            <h1 class="title is-hidden-desktop">{{package.prettyname}}</h1>
+
             <div class="columns">
 
                 <div class="column is-half is-two-thirds-widescreen">
@@ -27,44 +29,39 @@
                     </figure>
                     {% endif %}
 
-
-                    <div class="content block">
-                        {{ package.candidate.description | markdown }}
-                    </div>
                 </div>
 
 
-                <div class="column">
+                <div class="column is-flex is-flex-direction-column is-justify-content-center is-align-items-start">
 
-                    <div class="box is-shadowless has-background-light">
+                    <h1 class="title is-hidden-touch">{{package.prettyname}}</h1>
 
-                        <table class="table is-fullwidth is-hoverable">
-                            <tr>
-                                <th>Type</th>
-                                <td>
-                                    {% if 'presentation' in package.candidate.section %}
-                                    Presentation
-                                    {% elif 'addon' in package.candidate.section %}
-                                    Addon
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Version</th>
-                                <td>{{package.candidate.version}}</td>
-                            </tr>
-                            <tr>
-                                <th>Developer</th>
-                                <td>
-                                    <a href="{{package.candidate.homepage}}">{{package.maintainer}}</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Support</th>
-                                <td><a href="{{package.bugs}}">{{package.bugs}}</a></td>
-                            </tr>
-                        </table>
-                    </div>
+                    <table class="table is-fullwidth">
+                        <tr>
+                            <th>Type</th>
+                            <td>
+                                {% if 'presentation' in package.candidate.section %}
+                                Presentation
+                                {% elif 'addon' in package.candidate.section %}
+                                Addon
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Version</th>
+                            <td>{{package.candidate.version}}</td>
+                        </tr>
+                        <tr>
+                            <th>Developer</th>
+                            <td>
+                                <a href="{{package.candidate.homepage}}">{{package.maintainer}}</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Support</th>
+                            <td><a href="{{package.bugs}}">{{package.bugs}}</a></td>
+                        </tr>
+                    </table>
 
                     {% if package.is_installed %}
                     <button class="button is-danger is-fullwidth block">
@@ -84,6 +81,16 @@
 
                 </div>
             </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column content is-two-thirds-widescreen">
+                    {{ package.candidate.description | markdown }}
+                </div>
+            </div>
+        </div>
     </section>
 </div>
 {% endblock %}
