@@ -9,7 +9,6 @@
 """
 
 from flask import Flask, jsonify, render_template, request, after_this_request, abort, send_from_directory, make_response, Response
-from flaskext.markdown import Markdown
 from jinja2 import ChoiceLoader, FileSystemLoader
 
 # import augeas
@@ -485,6 +484,12 @@ def uninstall_package(name):
         abort(500, e)
 
 
+@app.route('/tooloop/api/v1.0/appcenter/package/<string:name>', methods=['GET'])
+def get_package(name):
+    pkg = appcenter.get_package(name)
+    return jsonify(pkg)
+
+
 @app.route('/tooloop/api/v1.0/appcenter/progress')
 def appcenter_progress():
     def progress():
@@ -502,7 +507,6 @@ def appcenter_progress():
 # MAIN
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    Markdown(app)
     app.json_encoder = PackageJSONEncoder
     app.run(
         host=app.config['HOST'],

@@ -3,81 +3,73 @@
 {% block title %}App Center{% endblock %}
 
 {% block main %}
-<div id="appcenter">
+<div id="package-detail">
 
     <section class="section has-background-info">
         <div class="container">
 
-            <h1 class="title is-hidden-desktop">{{package.prettyname}}</h1>
+            <h1 class="title is-hidden-desktop">[[package.name]]</h1>
 
             <div class="columns">
 
                 <div class="column is-half is-two-thirds-widescreen">
-                    {% if package.media|length > 0 %}
-                    <div class="gallery">
+                    
+                    <div v-if="package.media.length > 0" class="gallery">
                         <div class="gallery-body has-background-info">
-                            {% for media in package.media %}
-                            <img style="display: block;" src="/appcenter/media/{{media}}">
-                            {% endfor %}
+                            <img v-for="media in package.media" style="display: block;" :src="'/appcenter/media/' + media">
                         </div>
                         <!-- <span class="icon has-text-light gallery-next"><i class="fas fa-angle-right"></i></span>
                         <span class="icon has-text-light gallery-previous"><i class="fas fa-angle-left"></i></span> -->
                     </div>
-                    {% else %}
-                    <figure class="image block">
+                    
+                    <figure v-else class="image block">
                         <img src="/appcenter/media/{{package.thumbnail}}">
                     </figure>
-                    {% endif %}
 
                 </div>
 
 
                 <div class="column is-flex is-flex-direction-column is-justify-content-center is-align-items-start">
 
-                    <h1 class="title is-hidden-touch">{{package.prettyname}}</h1>
+                    <h1 class="title is-hidden-touch">[[package.name]]</h1>
 
                     <table class="table is-fullwidth">
                         <tr>
                             <th>Type</th>
                             <td>
-                                {% if 'presentation' in package.candidate.section %}
-                                Presentation
-                                {% elif 'addon' in package.candidate.section %}
-                                Addon
-                                {% endif %}
+                                <span v-if="package.section == 'tooloop/presentation'">Presentation</span>
+                                <span v-else-if="package.section == 'tooloop/addon'">Addon</span>
                             </td>
                         </tr>
                         <tr>
                             <th>Version</th>
-                            <td>{{package.candidate.version}}</td>
+                            <td>[[package.version]]</td>
                         </tr>
                         <tr>
                             <th>Developer</th>
                             <td>
-                                <a href="{{package.candidate.homepage}}">{{package.maintainer}}</a>
+                                <a :href="package.homepage">[[package.maintainer]]</a>
                             </td>
                         </tr>
                         <tr>
                             <th>Support</th>
-                            <td><a href="{{package.bugs}}">{{package.bugs}}</a></td>
+                            <td><a :href="package.bugs">[[package.bugs]]</a></td>
                         </tr>
                     </table>
 
-                    {% if package.is_installed %}
-                    <button class="button is-danger is-fullwidth block">
+                    <button v-if="package.isInstalled" class="button is-danger is-fullwidth block" v-on:click="uninstall(package)">
                         <span class="icon is-small mr-1">
                             <i class="fas fa-trash"></i>
                         </span>
                         Uninstall
                     </button>
-                    {% else %}
-                    <button class="button is-link is-fullwidth block">
+
+                    <button v-else class="button is-link is-fullwidth block" v-on:click="install(package)">
                         <span class="icon is-small mr-1">
                             <i class="fas fa-download"></i>
                         </span>
                         Install
                     </button>
-                    {% endif %}
 
                 </div>
             </div>
@@ -86,14 +78,24 @@
     <section class="section">
         <div class="container">
             <div class="columns">
-                <div class="column content is-two-thirds-widescreen">
-                    {{ package.candidate.description | markdown }}
-                </div>
+                <div v-html="htmlDescription" class="column content is-two-thirds-widescreen"></div>
             </div>
         </div>
     </section>
 </div>
+
+<div id="installer">
+    <Installer />
+</div>
 {% endblock %}
 
 
-{% block footer_scripts %}{% endblock %}
+{% block footer_scripts %}
+<script>
+    // Initial state from server
+    const package = {{ package | tojson }};
+</script>
+<script src="{{ url_for('static', filename='vendor/marked-4.0.15/marked.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/installer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/package-detail.js') }}"></script>
+{% endblock %}

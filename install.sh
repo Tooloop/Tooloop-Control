@@ -19,4 +19,4 @@ python3 -m venv --system-site-packages /opt/tooloop/control-center/venv
 
 # install site packages
 /opt/tooloop/control-center/venv/bin/pip install --upgrade pip
-/opt/tooloop/control-center/venv/bin/pip install Flask Flask-Markdown pexpect python-crontab
+/opt/tooloop/control-center/venv/bin/pip install Flask pexpect python-crontab

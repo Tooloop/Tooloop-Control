@@ -14,6 +14,7 @@ const Installer = Vue.createApp({
             messages: "",
             lastMessage: "",
             progressEventSource: null,
+            onFinished: null
         }
     },
 
@@ -22,7 +23,7 @@ const Installer = Vue.createApp({
         install(package, finishedCallback) {
             this.performInstall("install", package, finishedCallback);
         },
-        
+
         uninstall(package, finishedCallback) {
             this.performInstall("uninstall", package, finishedCallback);
         },
@@ -36,12 +37,13 @@ const Installer = Vue.createApp({
             this.title = this.capitalize(method) + "ing " + package.name;
             this.messages = "";
             this.lastMessage = "";
+            this.onFinished = finishedCallback;
 
             // Show modal
             this.isActive = true;
 
             // Listen to progress updates
-            this.progressEventSource = new EventSource("/tooloop/api/v1.0/appcenter/progress");
+            this.progressEventSource = new EventSource(this.api + "/appcenter/progress");
             this.progressEventSource.onmessage = this.updateProgress;
 
             // Perform installation
@@ -52,12 +54,11 @@ const Installer = Vue.createApp({
                 })
                 .then(data => {
                     this.finishInstallation(data.message);
-                    finishedCallback();
                 })
                 .catch((error) => {
                     this.success = false;
                     this.finishInstallation(error);
-                    finishedCallback();
+
                 });
 
         },
@@ -74,15 +75,27 @@ const Installer = Vue.createApp({
         },
 
         finishInstallation(message) {
+            // stop listening to server events (progress)
             this.progressEventSource.close();
+
+            // set progress states
             this.isFinished = true;
             this.progress = 100;
 
+            // print final message
             let icon = this.success ?
                 '<span class="icon has-text-success"><i class="fas fa-check"></i></span>' :
                 '<span class="icon has-text-danger"><i class="fas fa-xmark"></i></span>';
-
             this.log(`<p class="icon-text has-text-light mt-5">${icon}${message}</p>`);
+
+            // reload server, so the apt cache is reloaded, too
+            fetch(this.api + '/reload')
+                .then(response => response.json())
+                .then(data => {
+                    // with the new cache loaded, 
+                    // call callback so the vue can reload its’ data
+                    if (this.onFinished) this.onFinished();
+                });
         },
 
         log(message) {

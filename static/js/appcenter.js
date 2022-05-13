@@ -4,7 +4,7 @@ const ControlPanel = Vue.createApp({
 
     data() {
         return {
-            api: '/tooloop/api/v1.0',
+            api: '/tooloop/api/v1.0/appcenter',
             installedPresentation: null,
             availablePackages: [],
             sections: [
@@ -50,22 +50,16 @@ const ControlPanel = Vue.createApp({
 
     methods: {
         install(package) { Installer.install(package, this.updatePackages) },
-        
         uninstall(package) { Installer.uninstall(package, this.updatePackages) },
 
         updatePackages() {
-            console.log("finish callback");
-            fetch(this.api + '/reload')
+            fetch(this.api + "/installed")
                 .then(response => response.json())
-                .then(data => {
-                    fetch(this.api + "/appcenter/installed")
-                        .then(response => response.json())
-                        .then(data => this.installedPresentation = data);
+                .then(data => this.installedPresentation = data);
 
-                    fetch(this.api + "/appcenter/available")
-                        .then(response => response.json())
-                        .then(data => this.availablePackages = data);
-                });
+            fetch(this.api + "/available")
+                .then(response => response.json())
+                .then(data => this.availablePackages = data);
         },
     }
 
