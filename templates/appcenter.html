@@ -139,44 +139,23 @@
         </div>
     </section>
 
-    <div id="installer" class="modal" v-bind:class="{'is-active': installer.isActive}">
-        <div class="modal-background"></div>
-        <div class="modal-card">
-            <header class="modal-card-head">
-                <p class="modal-card-title">[[installer.title]]</p>
-            </header>
-            <section ref="log" class="modal-card-body has-background-dark">
-                <code class="has-background-dark has-text-grey-light p-0" v-html="installer.log"></code>
-            </section>
-            <footer class="modal-card-foot">
-                <div class="field is-grouped is-flex-grow-1">
-
-                    <div class="control is-expanded is-flex is-align-items-center">
-                        <progress class="progress"
-                            v-bind:class="{'is-success': installer.isFinished && installer.success, 'is-danger': installer.isFinished && !installer.success}"
-                            v-bind:value="installer.progress" max="100">[[installer.progress]]
-                            %</progress>
-                    </div>
-                    <div class="control">
-                        <button class="button" style="width: 6rem;" v-bind:class="{'is-loading': !installer.isFinished}"
-                            v-bind:disabled="!installer.isFinished"
-                            v-on:click="installer.isActive = false">Close</button>
-                    </div>
-                </div>
-            </footer>
-        </div>
-    </div>
-
+    
 </div>
+
+<div id="installer">
+    <Installer />
+</div>
+
 {% endblock %}
 
 
 {% block footer_scripts %}
 <script>
     // Initial state from server
-    const installedPresentation = {{ installed_presentation| tojson }};
-    const availablePackages = {{ available_packages| tojson }};
+    const installedPresentation = {{ installed_presentation | tojson }};
+    const availablePackages = {{ available_packages | tojson }};
 </script>
-<script src=" {{ url_for('static', filename='vendor/fuzzysort-1.9.0/fuzzysort.min.js' ) }}"></script>
+<script src="{{ url_for('static', filename='vendor/fuzzysort-1.9.0/fuzzysort.min.js' ) }}"></script>
+<script src="{{ url_for('static', filename='js/installer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/appcenter.js') }}"></script>
 {% endblock %}

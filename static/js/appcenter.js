@@ -15,17 +15,6 @@ const ControlPanel = Vue.createApp({
                 sections: ['tooloop/addon', 'tooloop/presentation'],
                 installedOnly: false,
                 query: ""
-            },
-            installer: {
-                isActive: false,
-                progress: 0,
-                isFinished: false,
-                success: true,
-                title: "",
-                package: null,
-                log: "",
-                lastMessage: "",
-                progressEventSource: null,
             }
         }
     },
@@ -59,57 +48,13 @@ const ControlPanel = Vue.createApp({
         this.availablePackages = availablePackages;
     },
 
-    mounted() {
-        console.log(this.$refs.log);
-    },
-
     methods: {
-
-        install(package) {
-            this.performInstall("install", package);
-
-        },
-
-        uninstall(package) {
-            this.performInstall("uninstall", package);
-        },
-
-        performInstall(method, package) {
-            // Reset installer states
-            this.installer.package = package;
-            this.installer.isFinished = false;
-            this.installer.success = true;
-            this.installer.progress = 0;
-            this.installer.title = this.capitalize(method) + "ing " + package.name;
-            this.installer.log = "";
-            this.installer.lastMessage = "";
-
-            // Show modal
-            this.installer.isActive = true;
-
-            // Perform installation
-            fetch(this.api + "/appcenter/" + method + "/" + package.packageName)
-                .then(response => {
-                    if (response.status != 200) this.installer.success = false;
-                    return response.json()
-                })
-                .then(data => { this.finishInstallation(data.message) })
-                .catch((error) => {
-                    this.installer.success = false;
-                    this.finishInstallation(error);
-                });
-
-            // Listen to progress updates
-            this.installer.progressEventSource = new EventSource("/tooloop/api/v1.0/appcenter/progress");
-            this.installer.progressEventSource.onmessage = this.updateProgress;
-        },
-
-        capitalize(s) {
-            if (typeof s !== 'string') return ''
-            return s.charAt(0).toUpperCase() + s.slice(1)
-        },
+        install(package) { Installer.install(package, this.updatePackages) },
+        
+        uninstall(package) { Installer.uninstall(package, this.updatePackages) },
 
         updatePackages() {
+            console.log("finish callback");
             fetch(this.api + '/reload')
                 .then(response => response.json())
                 .then(data => {
@@ -122,42 +67,6 @@ const ControlPanel = Vue.createApp({
                         .then(data => this.availablePackages = data);
                 });
         },
-
-        updateProgress(event) {
-            progress = JSON.parse(event.data);
-            this.installer.progress = progress.percent;
-            this.log(progress.task);
-
-        },
-
-        finishInstallation(message) {
-            this.installer.progressEventSource.close();
-            this.installer.isFinished = true;
-            this.installer.progress = 100;
-
-            let icon = this.installer.success ?
-                '<span class="icon has-text-success"><i class="fas fa-check"></i></span>' :
-                '<span class="icon has-text-danger"><i class="fas fa-xmark"></i></span>';
-
-            this.log(`<p class="icon-text has-text-light mt-5">${icon}${message}</p>`);
-
-            this.updatePackages();
-        },
-
-        log(message) {
-            if (this.installer.lastMessage != message) {
-                this.installer.lastMessage = message;
-                if (this.installer.log != "") this.installer.log += "<br>";
-                this.installer.log += message;
-                // scrolling needed to wait a little for some reason
-                // maybe the DOM had to catch up to update scrollTopMax?!
-                setTimeout(() => {
-                    this.$refs.log.scrollTop = this.$refs.log.scrollTopMax;
-                }, 16);
-            }
-        }
-
     }
-
 
 }).mount("#appcenter");
