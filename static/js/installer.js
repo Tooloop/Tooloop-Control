@@ -25,7 +25,9 @@ const Installer = Vue.createApp({
         },
 
         uninstall(package, finishedCallback) {
-            this.performInstall("uninstall", package, finishedCallback);
+            if (confirm(`Are you sure, you want to remove ${package.name}?`)) {
+                this.performInstall("uninstall", package, finishedCallback);
+            }
         },
 
         performInstall(method, package, finishedCallback) {
