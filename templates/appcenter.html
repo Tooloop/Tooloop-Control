@@ -35,7 +35,8 @@
                             </a>
                         </p>
                         <p class="control">
-                            <button class="button is-outlined is-danger is-small" v-on:click="uninstall(installedPresentation)">
+                            <button class="button is-outlined is-danger is-small"
+                                v-on:click="uninstall(installedPresentation)">
                                 Uninstall
                             </button>
                         </p>
@@ -53,7 +54,6 @@
 
                 <div class="field is-grouped is-grouped-multiline">
 
-
                     <div class="control" v-for="section in sections">
                         <label class="checkbox is-size-7 pt-2">
                             <input type="checkbox" :value="section.id" v-model="filter.sections">
@@ -61,18 +61,18 @@
                         </label>
                     </div>
 
-                    <div class="control has-icons-left">
-                        <input type="text" class="input is-small" placeholder="Search" v-model="filter.query">
-                        <span class="icon is-small is-left">
-                            <i class="fas fa-search"></i>
-                        </span>
-                    </div>
-
                     <div class="control">
                         <label class="checkbox is-size-7 pt-2">
                             <input type="checkbox" v-model="filter.installedOnly">
-                            Installed only
+                            Only installed
                         </label>
+                    </div>
+
+                    <div class="control has-icons-left is-expanded">
+                        <input type="text" class="input is-small is-rounded" placeholder="Search" v-model="filter.query">
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-search"></i>
+                        </span>
                     </div>
 
                 </div>
@@ -81,7 +81,7 @@
         </div>
     </section>
 
-    <section class="section has-background-light">
+    <section class="section has-background-light pt-0">
         <div class="container">
             <div class="columns is-multiline">
 
@@ -97,18 +97,20 @@
 
                             <p class="title is-5 mb-2">[[package.name]]</p>
 
-                            <div class="tags has-addons mt-1 mb-4">
+                            <div class="field is-grouped is-grouped-multiline">
+                                <div class="control">
+                                    <div class="tags">
+                                        <span v-if="package.section == 'tooloop/presentation'"
+                                            class="tag is-primary">Presentation</span>
+                                        <span v-else class="tag is-dark has-background-grey-light">Addon</span>
+                                    </div>
+                                </div>
 
-                                <span v-if="package.section == 'tooloop/presentation'"
-                                    class="tag is-primary">Presentation</span>
-                                <span v-else class="tag is-dark has-background-grey-light">Addon</span>
-
-                                <span v-if="package.isInstalled" class="tag is-success">
-                                    <span class="icon is-small">
-                                        <i class="fas fa-check"></i>
-                                    </span>
-                                </span>
-
+                                <div class="control" v-if="package.isInstalled">
+                                    <div class="tags has-addons">
+                                        <span class="tag is-success">Installed</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="content">
