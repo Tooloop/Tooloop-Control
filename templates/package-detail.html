@@ -57,17 +57,11 @@
                         </tr>
                     </table>
 
-                    <button v-if="package.isInstalled" class="button is-danger is-fullwidth block" v-on:click="uninstall(package)">
-                        <span class="icon is-small mr-1">
-                            <i class="fas fa-trash"></i>
-                        </span>
+                    <button v-if="package.isInstalled" class="button is-outlined is-danger block" v-on:click="uninstall(package)">
                         Uninstall
                     </button>
 
-                    <button v-else class="button is-link is-fullwidth block" v-on:click="install(package)">
-                        <span class="icon is-small mr-1">
-                            <i class="fas fa-download"></i>
-                        </span>
+                    <button v-else class="button is-outlined is-link block" v-on:click="install(package)">
                         Install
                     </button>
 

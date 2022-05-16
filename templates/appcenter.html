@@ -27,10 +27,19 @@
 
                     <div class="block content">[[ installedPresentation.summary ]]</div>
 
-                    <a class="button is-outlined is-dark is-small"
-                        v-bind:href="'/appcenter/' + installedPresentation.packageName">
-                        Details
-                    </a>
+                    <div class="field is-grouped">
+                        <p class="control">
+                            <a class="button is-outlined is-dark is-small"
+                                v-bind:href="'/appcenter/' + installedPresentation.packageName">
+                                Details
+                            </a>
+                        </p>
+                        <p class="control">
+                            <button class="button is-outlined is-danger is-small" v-on:click="uninstall(installedPresentation)">
+                                Uninstall
+                            </button>
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -109,26 +118,18 @@
                         </div>
 
                         <footer class="card-footer is-clipped">
-                            <a v-if="package.isInstalled" class="card-footer-item has-text-primary pr-4"
-                                v-on:click="uninstall(package)">
-                                <span class="icon has-text-grey mr-1">
-                                    <i class="fas fa-trash"></i>
-                                </span>
-                                Uninstall
-                            </a>
-                            <a v-else class="card-footer-item pr-4" v-on:click="install(package)">
-                                <span class="icon has-text-grey mr-1">
-                                    <i class="fas fa-download"></i>
-                                </span>
-                                Install
-                            </a>
-
                             <a v-bind:href="'/appcenter/' + package.packageName"
                                 class="card-footer-item has-text-grey pr-4">
-                                <span class="icon has-text-info mr-1">
-                                    <i class="fas fa-info-circle"></i>
-                                </span>
                                 Details
+                            </a>
+
+                            <a v-if="package.isInstalled" class="card-footer-item has-text-primary pr-4"
+                                v-on:click="uninstall(package)">
+                                Uninstall
+                            </a>
+
+                            <a v-else class="card-footer-item pr-4" v-on:click="install(package)">
+                                Install
                             </a>
                         </footer>
                     </div>
@@ -139,7 +140,7 @@
         </div>
     </section>
 
-    
+
 </div>
 
 <div id="installer">
