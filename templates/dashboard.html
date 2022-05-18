@@ -5,10 +5,12 @@
 <section class="section has-background-info">
     <div class="container">
 
-        <h1 class="title">{{hostname}}</h1>
-
+        <h1 class="title is-hidden-tablet">{{hostname}}</h1>
+        
         <div class="columns is-multiline is-reversed">
-            <div class="column is-full-tablet is-half-desktop" id="control-panel">
+            <div id="control-panel" class="column is-full-tablet is-two-thirds-desktop is-half-widescreen">
+                
+                <h1 class="title is-hidden-mobile">{{hostname}}</h1>
 
                 <table class="table is-fullwidth" style="line-height: 2.5;">
 
@@ -106,7 +108,7 @@
 
             <!-- Screenshots -->
 
-            <div id="screenshots" class="column is-full-tablet is-half-desktop">
+            <div id="screenshots" class="column">
                 <div ref="root" v-if="serviceRunning">
                     <a v-on:click="modalActive = true;">
                         <figure class="image">
