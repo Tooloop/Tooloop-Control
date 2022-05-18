@@ -21,28 +21,20 @@
                 {# https://pypi.org/project/zeroconf/ #}
                 {#
                 <!-- Computer select -->
-                <div class="field has-addons mx-5 mt-3">
-                    <div class="control is-expanded has-icons-left">
+                <div class="field mx-5 mt-3">
+                    <div class="control is-expanded">
                         <div class="select" style="width: 100%;">
-                            <select style="width: 100%;">
-                                <option value="">tooloop-box</option>
-                                <option value="">ush-map</option>
+                            <select style="width: 100%;" onchange="document.location='http://'+this.value">
+                                <option value="10.0.0.31">tooloop-box</option>
+                                <option value="10.0.0.28">tooloop-box-hp</option>
+                                <option value="10.0.0.32">ush-map</option>
                             </select>
                         </div>
-                        <span class="icon is-left has-text-grey">
-                            <i class="fas fa-server"></i>
-                        </span>
                     </div>
-                    <div class="control">
-                        <button class="button is-info">
-                            <span class="icon">
-                                <i class="fas fa-right-to-bracket"></i>
-                            </span>
-                        </button>
-                    </div>
-                </div>
 
-                <hr>
+                    <hr class="has-background-grey">
+
+                </div>
                 #}
 
                 <ul class="menu-list">
