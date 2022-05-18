@@ -41,6 +41,10 @@ hr {
         flex-direction: column-reverse;
         display: flex;
     }
+    
+    .columns.is-multiline {
+        flex-wrap: initial;
+    }
 }
 
 .field-body {
