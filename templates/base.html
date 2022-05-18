@@ -16,26 +16,19 @@
         <nav id="menu" role="navigation" aria-label="main navigation">
             <div class="menu has-background-dark" v-bind:class="{'is-active': isActive}">
 
-                {# use an AVAHI service to advertise the Control Center #}
-                {# and then list all found servers using the zeroconf lib #}
-                {# https://pypi.org/project/zeroconf/ #}
-                {#
-                <!-- Computer select -->
-                <div class="field mx-5 mt-3">
-                    <div class="control is-expanded">
+                <!-- Server select -->
+                <div id="network-discovery" class="field mx-5 mt-3">
+                    <div class="control is-expanded" v-if="servers.length > 1">
                         <div class="select" style="width: 100%;">
                             <select style="width: 100%;" onchange="document.location='http://'+this.value">
-                                <option value="10.0.0.31">tooloop-box</option>
-                                <option value="10.0.0.28">tooloop-box-hp</option>
-                                <option value="10.0.0.32">ush-map</option>
+                                <option v-for="server in servers" :value="server.ip"
+                                    :selected="server.ip == '{{ip_address}}' ? true : false">[[server.hostname]]
+                                </option>
                             </select>
                         </div>
+                        <hr class="has-background-grey">
                     </div>
-
-                    <hr class="has-background-grey">
-
                 </div>
-                #}
 
                 <ul class="menu-list">
                     <li>
@@ -119,13 +112,17 @@
 
     </div>
 
-
     {% if environment == "production" %}
     <script src="{{ url_for('static', filename='vendor/vue-3.2.31/vue.global.prod.js') }}"></script>
     {% else %}
     <script src="{{ url_for('static', filename='vendor/vue-3.2.31/vue.global.js') }}"></script>
     {% endif %}
-    <script src="{{ url_for('static', filename='js/menu.js') }}"></script>
+
+    <script>
+        // Initial state from server
+        const servers = {{ servers | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/network-discovery.js') }}"></script>
 
     {% block footer_scripts %}
     {% endblock %}

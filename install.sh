@@ -19,4 +19,18 @@ python3 -m venv --system-site-packages /opt/tooloop/control-center/venv
 
 # install site packages
 /opt/tooloop/control-center/venv/bin/pip install --upgrade pip
-/opt/tooloop/control-center/venv/bin/pip install Flask pexpect python-crontab
+/opt/tooloop/control-center/venv/bin/pip install Flask pexpect python-crontab zeroconf
+
+# publish services over Avahi/Bonjour
+cat > /etc/avahi/services/tooloop-control-center.service <<EOF
+<?xml version="1.0" standalone='no'?>
+<!--*-nxml-*-->
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name replace-wildcards="yes">%h</name>
+  <service>
+    <type>_tooloop-control-center._tcp</type>
+    <port>80</port>
+  </service>
+</service-group>
+EOF

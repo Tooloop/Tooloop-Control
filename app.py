@@ -27,6 +27,7 @@ from controllers.presentation_controller import Presentation
 from controllers.appcenter_controller import AppCenter, PackageJSONEncoder
 from controllers.services_controller import Services
 from controllers.screenshot_controller import Screenshots
+from controllers.network_discovery_controller import NetworkDiscovery
 from utils.time_utils import *
 from utils.exceptions import *
 
@@ -44,6 +45,7 @@ presentation = Presentation()
 appcenter = AppCenter(presentation, app)
 services = Services(app)
 screenshots = Screenshots()
+network_discovery = NetworkDiscovery()
 
 
 # ------------------------------------------------------------------------------
@@ -57,6 +59,8 @@ def index():
                            environment=os.environ['FLASK_ENV'],
                            page='dashboard',
                            hostname=system.get_hostname(),
+                           ip_address=system.get_ip(),
+                           servers=network_discovery.get_servers(),
                            display_state=system.get_display_state(),
                            audio_mute=system.get_audio_mute(),
                            audio_volume=system.get_audio_volume(),
@@ -501,6 +505,13 @@ def appcenter_progress():
             time.sleep(0.1)
 
     return Response(progress(), mimetype='text/event-stream')
+
+
+# network discovery
+
+@app.route('/tooloop/api/v1.0/networkdiscovery/servers', methods=['GET'])
+def get_servers():
+    return jsonify(network_discovery.get_servers())
 
 
 # ------------------------------------------------------------------------------
