@@ -73,6 +73,8 @@ def index():
 def render_appcenter():
     return render_template('appcenter.html',
                            page='appcenter',
+                           ip_address=system.get_ip(),
+                           servers=network_discovery.get_servers(),
                            installed_presentation=appcenter.get_installed_presentation(),
                            available_packages=appcenter.get_available_packages(),
                            )
@@ -82,6 +84,8 @@ def render_appcenter():
 def render_package_detail(package):
     return render_template('package-detail.html',
                            page='appcenter',
+                           ip_address=system.get_ip(),
+                           servers=network_discovery.get_servers(),
                            package=appcenter.get_package(package),
                            installed_presentation=appcenter.get_installed_presentation()
                            )
@@ -92,6 +96,7 @@ def render_services():
     return render_template('services.html',
                            page='services',
                            ip_address=system.get_ip(),
+                           servers=network_discovery.get_servers(),
                            services=services.get_status(),
                            )
 
@@ -103,6 +108,7 @@ def render_system():
                            os_version="22.04",
                            hostname=system.get_hostname(),
                            ip_address=system.get_ip(),
+                           servers=network_discovery.get_servers(),
                            uptime=time_to_ISO_string(system.get_uptime()),
                            timezone=system.get_timezone(),
                            ssh_running=services.is_ssh_running(),
