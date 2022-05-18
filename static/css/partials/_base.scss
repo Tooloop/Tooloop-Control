@@ -24,6 +24,8 @@ html {
 
 #main {
     flex-grow: 1;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 hr {
@@ -41,7 +43,7 @@ hr {
         flex-direction: column-reverse;
         display: flex;
     }
-    
+
     .columns.is-multiline {
         flex-wrap: initial;
     }
