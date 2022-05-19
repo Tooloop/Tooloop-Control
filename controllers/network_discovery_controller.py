@@ -21,6 +21,7 @@ class TooloopServiceListener(ServiceListener):
     def get_server_info(self, zc, type_, name):
         info = zc.get_service_info(type_, name)
         hostname = info.server.rstrip('.local.')
+        ip = ''
         for address in info.parsed_addresses(IPVersion.V4Only):
             if address != '127.0.0.1':
                 ip = address
