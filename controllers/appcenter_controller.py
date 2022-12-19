@@ -215,6 +215,7 @@ class AppCenter(object):
 
             for package in packages:
                 pkg = self.apt_cache[package]
+                if not pkg.candidate: continue
                 self.add_tooloop_metainfo(pkg)
                 self.packages.append(pkg)
 
