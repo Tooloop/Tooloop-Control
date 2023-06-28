@@ -38,7 +38,6 @@ from utils.exceptions import *
 
 app = Flask(__name__)
 app.config.from_pyfile('data/config.cfg')
-os.environ['FLASK_ENV'] = app.config['ENVIRONMENT']
 
 system = System(app)
 presentation = Presentation()
@@ -56,7 +55,6 @@ network_discovery = NetworkDiscovery()
 @app.route("/dashboard")
 def index():
     return render_template('dashboard.html',
-                           environment=os.environ['FLASK_ENV'],
                            page='dashboard',
                            hostname=system.get_hostname(),
                            ip_address=system.get_ip(),
