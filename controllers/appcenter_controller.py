@@ -5,7 +5,7 @@
 
 from nis import cat
 from flask import Flask, render_template, abort, jsonify
-from flask.json import JSONEncoder
+from flask.json.provider import DefaultJSONProvider
 
 import pwd
 import grp
@@ -123,8 +123,7 @@ class DictInstallProgress(apt.progress.base.InstallProgress):
 # ------------------------------------------------------------------------------
 # PackageJSONEncoder
 # ------------------------------------------------------------------------------
-class PackageJSONEncoder(JSONEncoder):
-
+class PackageJSONProvider(DefaultJSONProvider):
     def default(self, obj):
         try:
             if isinstance(obj, Package):
@@ -153,7 +152,8 @@ class PackageJSONEncoder(JSONEncoder):
             pass
         else:
             return list(iterable)
-        return JSONEncoder.default(self, obj)
+        return DefaultJSONProvider.default(self, obj)
+
 
 
 # ------------------------------------------------------------------------------

@@ -24,7 +24,7 @@ from pathlib import Path
 
 from controllers.system_controller import System
 from controllers.presentation_controller import Presentation
-from controllers.appcenter_controller import AppCenter, PackageJSONEncoder
+from controllers.appcenter_controller import AppCenter, PackageJSONProvider
 from controllers.services_controller import Services
 from controllers.screenshot_controller import Screenshots
 from controllers.network_discovery_controller import NetworkDiscovery
@@ -522,7 +522,7 @@ def get_servers():
 # MAIN
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    app.json_encoder = PackageJSONEncoder
+    app.json = PackageJSONProvider(app)
     app.run(
         host=app.config['HOST'],
         port=app.config['PORT'],
