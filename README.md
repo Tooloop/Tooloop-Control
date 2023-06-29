@@ -2,8 +2,7 @@
 
 ![](https://img.shields.io/github/license/tooloop/tooloop-control.svg)
 
-A browser based settings Control Center for Tooloop OS.
-It’s a re-write of the old [Tooloop Settings Server](https://github.com/Tooloop/Tooloop-Settings-Server). It’s supposed to replace it in the effort of moving Tooloop OS to Ubuntu 22.04.
+A browser based settings app for [Tooloop OS](https://github.com/Tooloop/Tooloop-OS).
 
 ![control-center](https://github.com/Tooloop/Tooloop-Control/assets/4962676/d27a5a6f-5970-457b-aab5-646ba3bea7c4)
 
