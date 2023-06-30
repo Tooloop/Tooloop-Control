@@ -29,7 +29,7 @@ class System(object):
             self.runtime_schedule = {
                 'startup': {
                     'enabled': False,
-                    'weekdays': [],
+                    'weekdays': [1,2,3,4,5],
                     'time': {
                         'hours': 8,
                         'minutes': 0
@@ -38,7 +38,7 @@ class System(object):
                 'shutdown': {
                     'enabled': False,
                     'type': 'poweroff',
-                    'weekdays': [],
+                    'weekdays': [1,2,3,4,5],
                     'time': {
                         'hours': 20,
                         'minutes': 0
