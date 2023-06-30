@@ -40,10 +40,10 @@
             <tr>
                 <th class="is-narrow has-text-right">Timezone</th>
                 <td>
-                    <div class="field has-addons">
+                    <div class="field has-addons timezone-select">
                         <div class="control has-icons-left">
                             <div class="select">
-                                <select name="timezone-select" id="timezone-select" v-model="timezone">
+                                <select v-model="timezone">
                                     {% for tz in available_timezones %}
                                     <option value="{{ tz }}">{{ tz }}</option>
                                     {% endfor %}
