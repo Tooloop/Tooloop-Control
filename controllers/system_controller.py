@@ -2,10 +2,12 @@
 from subprocess import check_output, check_call, Popen, PIPE, call
 import os
 import time
+from flask import jsonify
 import pexpect
 import fileinput
 import json
 import datetime
+from pytz import common_timezones
 from utils.time_utils import *
 from utils.cpu_load import CpuLoad
 from crontab import CronTab
@@ -95,11 +97,25 @@ class System(object):
 
     def get_uptime(self):
         uptime_string = check_output(['uptime', '-s']).decode().rstrip('\n')
-        uptime = gmtime_from_string(uptime_string, '%Y-%m-%d %H:%M:%S')
-        return uptime
+        return uptime_string
 
     def get_timezone(self):
         return check_output(['cat', '/etc/timezone']).decode().rstrip('\n')
+
+    def set_timezone(self, timezone):
+        # nothing to do
+        if timezone == self.get_timezone():
+            return
+        
+        # change timezone
+        try:
+            os.popen('sudo timedatectl set-timezone ' + timezone)
+            return jsonify({'timezone': timezone})
+        except Exception as e:
+            raise
+
+    def get_available_timezones(self):
+        return common_timezones
 
     def get_hd(self):
         # get hd information

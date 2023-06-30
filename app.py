@@ -104,11 +104,12 @@ def render_system():
     return render_template('system.html',
                            page='system',
                            os_version="22.04",
+                           servers=network_discovery.get_servers(),
                            hostname=system.get_hostname(),
                            ip_address=system.get_ip(),
-                           servers=network_discovery.get_servers(),
-                           uptime=time_to_ISO_string(system.get_uptime()),
+                           uptime=system.get_uptime(),
                            timezone=system.get_timezone(),
+                           available_timezones=system.get_available_timezones(),
                            ssh_running=services.is_ssh_running(),
                            vnc_running=services.is_vnc_running(),
                            runtime_schedule=system.get_runtime_schedule(),
@@ -184,7 +185,22 @@ def get_usage():
 
 @app.route('/tooloop/api/v1.0/system/uptime', methods=['GET'])
 def get_uptime():
-    return jsonify({'uptime': time_to_ISO_string(system.get_uptime())})
+    return jsonify({'uptime': system.get_uptime()})
+
+
+@app.route('/tooloop/api/v1.0/system/timezone', methods=['GET'])
+def get_timezone():
+    return jsonify({'timezone': system.get_timezone()})
+
+
+@app.route('/tooloop/api/v1.0/system/timezone', methods=['PUT'])
+def set_timezone():
+    if not request.get_json() or not 'timezone' in request.get_json():
+        abort(400)
+    try:
+        return system.set_timezone(request.get_json()['timezone'])
+    except Exception as e:
+        abort(500, e)
 
 
 @app.route('/tooloop/api/v1.0/system/hd', methods=['GET'])

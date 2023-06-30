@@ -7,6 +7,7 @@ const System = Vue.createApp({
             api: '/tooloop/api/v1.0/system',
             hostname: null,
             uptime: null,
+            timezone: null,
             oldPassword: "",
             newPassword: "",
             repeatNewPassword: "",
@@ -15,8 +16,15 @@ const System = Vue.createApp({
 
     created() {
         this.hostname = hostname;
-        let uptimeDate = new Date(uptime);
-        this.uptime = "running since " + (uptimeDate.toDateString() == new Date().toDateString() ? "" : uptimeDate.toLocaleDateString() + ", ") + uptimeDate.toLocaleTimeString();
+        this.uptime = uptime;
+        this.timezone = timezone;
+    },
+
+    computed: {
+        uptimeString() {
+            let uptimeDate = new Date(this.uptime);
+            return "running since " + (uptimeDate.toDateString() == new Date().toDateString() ? "" : uptimeDate.toLocaleDateString() + ", ") + uptimeDate.toLocaleTimeString();
+        }
     },
 
     methods: {
@@ -56,7 +64,29 @@ const System = Vue.createApp({
                 .catch(error => {
                     console.error(error);
                 });
-        }
+        },
+
+        getUptime() {
+            fetch(this.api + '/uptime')
+                .then(response => response.json())
+                .then(data => {
+                    this.uptime = data.uptime;
+                });
+        },
+
+        saveTimezone() {
+            fetch(this.api + '/timezone', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "timezone": this.timezone })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    this.timezone = data.timezone;
+                    // let some time pass so the uptime is calculated correctly
+                    setTimeout(this.getUptime, 500);
+                });
+        },
 
     },
 }).mount("#system");
