@@ -62,7 +62,6 @@ def index():
                            display_state=system.get_display_state(),
                            audio_mute=system.get_audio_mute(),
                            audio_volume=system.get_audio_volume(),
-                           uptime=time_to_ISO_string(system.get_uptime()),
                            screenshot_service_running=services.is_screenshot_service_running(),
                            )
 
