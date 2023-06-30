@@ -6,10 +6,10 @@
     <div class="container">
 
         <h1 class="title is-hidden-tablet">{{hostname}}</h1>
-        
+
         <div class="columns is-multiline is-reversed">
             <div id="control-panel" class="column is-full-tablet is-two-thirds-desktop is-half-widescreen">
-                
+
                 <h1 class="title is-hidden-mobile">{{hostname}}</h1>
 
                 <table class="table is-fullwidth" style="line-height: 2.5;">
@@ -93,9 +93,8 @@
                                     <label for="volume-switch"></label>
                                 </p>
                                 <p class="control is-flex">
-                                    <input id="volume-slider" ref="volumeSlider"
-                                        type="range" min="0" max="150" v-model.number="audio['volume']"
-                                        v-bind:disabled="!audio['enabled']">
+                                    <input id="volume-slider" ref="volumeSlider" type="range" min="0" max="150"
+                                        v-model.number="audio['volume']" v-bind:disabled="!audio['enabled']">
                                     <label for="volume-slider" class="pl-2">[[ audio['volume'] ]] %</label>
                                 </p>
                             </div>
@@ -110,17 +109,16 @@
 
             <div id="screenshots" class="column">
                 <div ref="root" v-if="serviceRunning">
-                    <a v-on:click="modalActive = true;">
-                        <figure class="image">
-                            <img :src="thumbnail" />
-                        </figure>
-                    </a>
+                    <figure class="image" v-bind:class="{'is-portrait': thumbnailRatio < 1}">
+                        <img class="thumbnail" :src="thumbnail" v-on:click="modalActive = true;" ref="thumbnail" />
+                    </figure>
 
                     <button id="screenshot-button" class="button is-small is-white" v-on:click="grabScreenshot">
                         <span class="icon">
                             <i class="fas fa-camera"></i>
                         </span>
                     </button>
+
 
                     <div id="modal" class="modal" v-bind:class="{'is-active': modalActive}">
                         <div class="modal-background" v-on:click="modalActive = false"></div>

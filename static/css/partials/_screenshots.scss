@@ -1,9 +1,18 @@
-#screenshots > div {
+#screenshots>div {
     position: relative;
 }
 
 #screenshot-button {
     position: absolute;
-    right: 0.5rem;
+    left: 0.5rem;
     bottom: 0.5rem;
+}
+
+#screenshots .thumbnail {
+    cursor: zoom-in;
+}
+
+.image.is-portrait .thumbnail {
+    height: 100%;
+    width: auto;
 }
