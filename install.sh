@@ -29,7 +29,7 @@ cat > /etc/avahi/services/tooloop-control-center.service <<EOF
 <service-group>
   <name replace-wildcards="yes">%h</name>
   <service>
-    <type>_tooloop-control-center._tcp</type>
+    <type>_http._tcp</type>
     <port>80</port>
   </service>
 </service-group>
