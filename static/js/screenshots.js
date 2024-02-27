@@ -22,7 +22,9 @@ const Screenshots = Vue.createApp({
     },
 
     mounted() {
-        this.$refs.thumbnail.onload = this.calculateRatio;
+        if (this.serviceRunning) {
+            this.$refs.thumbnail.onload = this.calculateRatio;
+        }
     },
 
     watch: {
