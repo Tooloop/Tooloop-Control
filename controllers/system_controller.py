@@ -85,6 +85,10 @@ class System(object):
                 file.write(filedata)
         except Exception as e:
             raise e
+        
+        # Help Chromium start after changing hostname
+        # https://issues.chromium.org/issues/41103620
+        call('rm -rf /home/tooloop/snap/chromium/common/chromium/Singleton*', shell=True)
 
         self.needs_reboot = True
 
@@ -109,7 +113,7 @@ class System(object):
     def set_timezone(self, timezone):
         # nothing to do
         if timezone == self.get_timezone():
-            return
+            return jsonify({'timezone': timezone})
         
         # change timezone
         try:
