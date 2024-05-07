@@ -11,6 +11,7 @@ from pytz import common_timezones
 from utils.time_utils import *
 from utils.cpu_load import CpuLoad
 from crontab import CronTab
+import configparser
 
 
 class System(object):
@@ -100,7 +101,10 @@ class System(object):
         return uptime_string
 
     def get_timezone(self):
-        return check_output(['cat', '/etc/timezone']).decode().rstrip('\n')
+        timedate_info = check_output(['timedatectl', 'show']).decode().rstrip('\n')
+        config = configparser.ConfigParser()
+        config.read_string('[TimeDateInfo]\n' + timedate_info)
+        return config['TimeDateInfo']['Timezone']
 
     def set_timezone(self, timezone):
         # nothing to do
@@ -109,7 +113,7 @@ class System(object):
         
         # change timezone
         try:
-            os.popen('sudo timedatectl set-timezone ' + timezone)
+            os.popen('timedatectl set-timezone ' + timezone)
             return jsonify({'timezone': timezone})
         except Exception as e:
             raise
