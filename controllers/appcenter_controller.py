@@ -3,7 +3,6 @@
 # Python-APT docs:
 # https://apt-team.pages.debian.net/python-apt/library/index.html
 
-from nis import cat
 from flask import Flask, render_template, abort, jsonify
 from flask.json.provider import DefaultJSONProvider
 
