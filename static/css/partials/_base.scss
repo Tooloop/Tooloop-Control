@@ -80,13 +80,22 @@ hr {
     td>.button {
         margin-bottom: 0.75rem;
     }
+
 }
 
 .switch[type="checkbox"]+label::after,
 .switch[type="checkbox"]+label::after {
-    border-radius: calc($switch-radius / 2);
+    border-radius: calc(#{$switch-radius} / 2);
 }
 
 .switch[type="checkbox"]:checked+label::after {
-    left: calc(1.25rem + 1.25rem / 2 - 2 * $switch-paddle-offset);
+    left: calc(1.25rem + 1.25rem / 2 - 2 * #{$switch-paddle-offset});
+}
+
+select {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }

@@ -24,7 +24,7 @@ from pathlib import Path
 
 from controllers.system_controller import System
 from controllers.presentation_controller import Presentation
-from controllers.appcenter_controller import AppCenter, PackageJSONEncoder
+from controllers.appcenter_controller import AppCenter, PackageJSONProvider
 from controllers.services_controller import Services
 from controllers.screenshot_controller import Screenshots
 from controllers.network_discovery_controller import NetworkDiscovery
@@ -38,7 +38,6 @@ from utils.exceptions import *
 
 app = Flask(__name__)
 app.config.from_pyfile('data/config.cfg')
-os.environ['FLASK_ENV'] = app.config['ENVIRONMENT']
 
 system = System(app)
 presentation = Presentation()
@@ -56,7 +55,6 @@ network_discovery = NetworkDiscovery()
 @app.route("/dashboard")
 def index():
     return render_template('dashboard.html',
-                           environment=os.environ['FLASK_ENV'],
                            page='dashboard',
                            hostname=system.get_hostname(),
                            ip_address=system.get_ip(),
@@ -64,7 +62,6 @@ def index():
                            display_state=system.get_display_state(),
                            audio_mute=system.get_audio_mute(),
                            audio_volume=system.get_audio_volume(),
-                           uptime=time_to_ISO_string(system.get_uptime()),
                            screenshot_service_running=services.is_screenshot_service_running(),
                            )
 
@@ -106,11 +103,12 @@ def render_system():
     return render_template('system.html',
                            page='system',
                            os_version="22.04",
+                           servers=network_discovery.get_servers(),
                            hostname=system.get_hostname(),
                            ip_address=system.get_ip(),
-                           servers=network_discovery.get_servers(),
-                           uptime=time_to_ISO_string(system.get_uptime()),
+                           uptime=system.get_uptime(),
                            timezone=system.get_timezone(),
+                           available_timezones=system.get_available_timezones(),
                            ssh_running=services.is_ssh_running(),
                            vnc_running=services.is_vnc_running(),
                            runtime_schedule=system.get_runtime_schedule(),
@@ -186,7 +184,22 @@ def get_usage():
 
 @app.route('/tooloop/api/v1.0/system/uptime', methods=['GET'])
 def get_uptime():
-    return jsonify({'uptime': time_to_ISO_string(system.get_uptime())})
+    return jsonify({'uptime': system.get_uptime()})
+
+
+@app.route('/tooloop/api/v1.0/system/timezone', methods=['GET'])
+def get_timezone():
+    return jsonify({'timezone': system.get_timezone()})
+
+
+@app.route('/tooloop/api/v1.0/system/timezone', methods=['PUT'])
+def set_timezone():
+    if not request.get_json() or not 'timezone' in request.get_json():
+        abort(400)
+    try:
+        return system.set_timezone(request.get_json()['timezone'])
+    except Exception as e:
+        abort(500, e)
 
 
 @app.route('/tooloop/api/v1.0/system/hd', methods=['GET'])
@@ -524,9 +537,10 @@ def get_servers():
 # MAIN
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    app.json_encoder = PackageJSONEncoder
+    app.json = PackageJSONProvider(app)
     app.run(
         host=app.config['HOST'],
         port=app.config['PORT'],
+        debug=app.config['DEBUG'],
         extra_files=[os.path.join(app.root_path, 'data', 'reload')]
     )

@@ -2,13 +2,16 @@
 from subprocess import check_output, check_call, Popen, PIPE, call
 import os
 import time
+from flask import jsonify
 import pexpect
 import fileinput
 import json
 import datetime
+from pytz import common_timezones
 from utils.time_utils import *
 from utils.cpu_load import CpuLoad
 from crontab import CronTab
+import configparser
 
 
 class System(object):
@@ -27,7 +30,7 @@ class System(object):
             self.runtime_schedule = {
                 'startup': {
                     'enabled': False,
-                    'weekdays': [],
+                    'weekdays': [1,2,3,4,5],
                     'time': {
                         'hours': 8,
                         'minutes': 0
@@ -36,7 +39,7 @@ class System(object):
                 'shutdown': {
                     'enabled': False,
                     'type': 'poweroff',
-                    'weekdays': [],
+                    'weekdays': [1,2,3,4,5],
                     'time': {
                         'hours': 20,
                         'minutes': 0
@@ -82,6 +85,10 @@ class System(object):
                 file.write(filedata)
         except Exception as e:
             raise e
+        
+        # Help Chromium start after changing hostname
+        # https://issues.chromium.org/issues/41103620
+        call('rm -rf /home/tooloop/snap/chromium/common/chromium/Singleton*', shell=True)
 
         self.needs_reboot = True
 
@@ -95,11 +102,28 @@ class System(object):
 
     def get_uptime(self):
         uptime_string = check_output(['uptime', '-s']).decode().rstrip('\n')
-        uptime = gmtime_from_string(uptime_string, '%Y-%m-%d %H:%M:%S')
-        return uptime
+        return uptime_string
 
     def get_timezone(self):
-        return check_output(['cat', '/etc/timezone']).decode().rstrip('\n')
+        timedate_info = check_output(['timedatectl', 'show']).decode().rstrip('\n')
+        config = configparser.ConfigParser()
+        config.read_string('[TimeDateInfo]\n' + timedate_info)
+        return config['TimeDateInfo']['Timezone']
+
+    def set_timezone(self, timezone):
+        # nothing to do
+        if timezone == self.get_timezone():
+            return jsonify({'timezone': timezone})
+        
+        # change timezone
+        try:
+            os.popen('timedatectl set-timezone ' + timezone)
+            return jsonify({'timezone': timezone})
+        except Exception as e:
+            raise
+
+    def get_available_timezones(self):
+        return common_timezones
 
     def get_hd(self):
         # get hd information

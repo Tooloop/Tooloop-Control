@@ -133,3 +133,4 @@ dmypy.json
 data/runtime-schedule.json
 .DS_Store
 .gitignore
+.vscode

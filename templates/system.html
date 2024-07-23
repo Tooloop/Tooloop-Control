@@ -33,21 +33,30 @@
             <!-- Uptime -->
             <tr>
                 <th class="is-narrow has-text-right">Uptime</th>
-                <td>[[uptime]]</td>
+                <td>[[uptimeString]]</td>
             </tr>
 
             <!-- Timezone -->
             <tr>
                 <th class="is-narrow has-text-right">Timezone</th>
                 <td>
-                    {{timezone}}
-                    {#
-                    <button class="button is-ghost" v-on:click="setTimezone()">
-                        <span class="icon">
-                            <i class="fas fa-edit"></i>
-                        </span>
-                    </button>
-                    #}
+                    <div class="field has-addons timezone-select">
+                        <div class="control has-icons-left">
+                            <div class="select">
+                                <select v-model="timezone">
+                                    {% for tz in available_timezones %}
+                                    <option value="{{ tz }}">{{ tz }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="icon is-small is-left">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                        </div>
+                        <div class="control">
+                            <button class="button is-info" v-on:click="saveTimezone()">Save</button>
+                        </div>
+                    </div>
                 </td>
             </tr>
 
@@ -228,9 +237,10 @@
 {% block footer_scripts %}
 <script>
     // Initial state from server
-    const hostname = {{hostname | tojson}};
-    const uptime = {{uptime | tojson}};
-    const schedule = {{runtime_schedule | tojson}};
+    const hostname = {{ hostname | tojson}};
+    const uptime = {{ uptime | tojson}};
+    const timezone = {{ timezone | tojson}};
+    const schedule = {{ runtime_schedule | tojson}};
 </script>
 <script src="{{ url_for('static', filename='js/system.js') }}"></script>
 <script src="{{ url_for('static', filename='js/schedule.js') }}"></script>

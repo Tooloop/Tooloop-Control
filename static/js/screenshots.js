@@ -9,15 +9,22 @@ const Screenshots = Vue.createApp({
             serviceRunning: true,
             displayState: 'on',
             latest: {},
-            thumbnail: '/static/img/placeholder.png'
+            thumbnail: '/static/img/placeholder.png',
+            thumbnailRatio: null
         }
     },
 
     created() {
+        this.serviceRunning = screenshotServiceRunning;
+        this.displayState = displayState;
+        if (!this.serviceRunning) return;
         this.loadLatestThumbnail();
         setInterval(this.loadLatestThumbnail, 5000);
-        this.displayState = displayState;
-        this.serviceRunning = screenshotServiceRunning;
+    },
+
+    mounted() {
+        if (!this.serviceRunning) return;
+        this.$refs.thumbnail.onload = this.calculateRatio;
     },
 
     watch: {
@@ -28,6 +35,7 @@ const Screenshots = Vue.createApp({
 
     methods: {
         loadLatestThumbnail() {
+            if (!this.serviceRunning) return;
             fetch(this.api + 'latest')
                 .then(response => response.json())
                 .then(data => this.latest = data);
@@ -35,10 +43,16 @@ const Screenshots = Vue.createApp({
         },
 
         grabScreenshot() {
+            if (!this.serviceRunning) return;
             fetch(this.api + 'grab')
                 .then(response => response.json())
                 .then(data => this.latest = data);
         },
+
+        calculateRatio() {
+            if (!this.serviceRunning) return;
+            this.thumbnailRatio = this.$refs.thumbnail.naturalWidth / this.$refs.thumbnail.naturalHeight;
+        }
     },
 
 }).mount("#screenshots");

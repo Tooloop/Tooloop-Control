@@ -15,7 +15,7 @@ const ControlPanel = Vue.createApp({
     },
 
     created() {
-        this.displayState = displayState.toLowerCase() == 'on';
+        this.displayState = displayState.toLowerCase() != 'off';
         this.audio.enabled = !audioMute;
         this.audio.volume = audioVolume;
         this.modal = document.getElementById('modal');

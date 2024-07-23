@@ -108,7 +108,6 @@ const Usage = Vue.createApp({
                 .then(data => this.pushData(data));
         }, 1000);
         window.onunload = function () {
-            console.log("Bye");
             controller.abort();
         }
 

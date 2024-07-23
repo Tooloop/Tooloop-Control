@@ -3,9 +3,8 @@
 # Python-APT docs:
 # https://apt-team.pages.debian.net/python-apt/library/index.html
 
-from nis import cat
 from flask import Flask, render_template, abort, jsonify
-from flask.json import JSONEncoder
+from flask.json.provider import DefaultJSONProvider
 
 import pwd
 import grp
@@ -123,8 +122,7 @@ class DictInstallProgress(apt.progress.base.InstallProgress):
 # ------------------------------------------------------------------------------
 # PackageJSONEncoder
 # ------------------------------------------------------------------------------
-class PackageJSONEncoder(JSONEncoder):
-
+class PackageJSONProvider(DefaultJSONProvider):
     def default(self, obj):
         try:
             if isinstance(obj, Package):
@@ -153,7 +151,8 @@ class PackageJSONEncoder(JSONEncoder):
             pass
         else:
             return list(iterable)
-        return JSONEncoder.default(self, obj)
+        return DefaultJSONProvider.default(self, obj)
+
 
 
 # ------------------------------------------------------------------------------
@@ -301,15 +300,7 @@ class AppCenter(object):
                 self.presentation_controller.stop()
 
             # install
-            # self.progress = {
-            #     'percent':0,
-            #     'step': '',
-            #     'task': '',
-            #     'status':'ok'
-            #     }
-            # print self.progress
-
-            result = self.apt_cache.commit(
+            self.apt_cache.commit(
                 DictFetchProgress(self.progress),
                 DictInstallProgress(self.progress),
                 allow_unauthenticated=True)
@@ -351,20 +342,14 @@ class AppCenter(object):
             raise Exception(package+" is not a tooloop package")
 
         if pkg.is_installed:
-            pkg.mark_delete()
+            # remove package
+            pkg.mark_delete(purge=True)
         else:
             # 304 – Not Modified
             raise InvalidUsage(package + " is not installed", status_code=400)
 
         try:
-            # self.progress = {
-            #     'percent':0,
-            #     'step': '',
-            #     'task': '',
-            #     'status':'ok'
-            #     }
-            # print self.progress
-            result = self.apt_cache.commit(
+            self.apt_cache.commit(
                 DictFetchProgress(self.progress),
                 DictInstallProgress(self.progress),
                 allow_unauthenticated=True)  # True if all was fine
@@ -374,6 +359,37 @@ class AppCenter(object):
             raise Exception(
                 "Sorry, purging package failed [{err}]".format(err=str(arg)))
 
+        # remove dependencies
+        self.auto_purge(pkg)
+
+
+    def auto_purge(self, package, depth=0):
+        packages = []
+        
+        # search autoremovable packages
+        # https://askubuntu.com/a/652531/873460
+        ps = Popen("apt-get --dry-run autoremove | grep -Po '^Remv \K[^ ]+'",
+                    shell=True, stdout=PIPE)
+        output = ps.stdout.read()
+        ps.stdout.close()
+        ps.wait()
+        packages = output.splitlines()
+        
+        # mark for removal
+        for pkg in packages:
+            self.apt_cache[pkg.decode()].mark_delete(purge=True)
+        
+        try:
+            self.apt_cache.commit(
+                DictFetchProgress(self.progress),
+                DictInstallProgress(self.progress),
+                allow_unauthenticated=True)  # True if all was fine
+            self.apt_cache.update()
+            self.apt_cache.open()
+        except Exception as arg:
+            raise Exception(
+                "Sorry, purging package failed [{err}]".format(err=str(arg)))
+    
     def get_progress(self):
         return self.progress
 
