@@ -99,6 +99,14 @@ class System(object):
             return ''
         except Exception as e:
             raise
+    
+    def get_mac(self):
+        try:
+            return check_output(['hostname', '-I']).decode().rstrip('\n').split()[1]
+        except IndexError as e:
+            return ''
+        except Exception as e:
+            raise
 
     def get_uptime(self):
         uptime_string = check_output(['uptime', '-s']).decode().rstrip('\n')
@@ -274,8 +282,10 @@ class System(object):
 
     def to_dict(self):
         return {
-            'needs_reboot': self.needs_reboot,
-            'hostname': self.get_hostname()
+            'hostname': self.get_hostname(),
+            'ip_address': self.get_ip(),
+            'mac_address': self.get_mac(),
+            'needs_reboot': self.needs_reboot
         }
 
     def get_audio_volume(self):
