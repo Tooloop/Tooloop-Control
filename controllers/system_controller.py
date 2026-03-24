@@ -12,6 +12,7 @@ from utils.time_utils import *
 from utils.cpu_load import CpuLoad
 from crontab import CronTab
 import configparser
+import sensors
 
 
 class System(object):
@@ -48,6 +49,11 @@ class System(object):
             }
 
         self.setup_runtime_schedule()
+        sensors.init()
+
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        sensors.cleanup()
 
     def get_hostname(self):
         try:
@@ -159,33 +165,40 @@ class System(object):
         }
 
     def get_cpu(self):
-        # get all thermal zones, of the cpu
-        thermal_zones = []
-        for name in os.listdir('/sys/class/thermal'):
-            if 'thermal_zone' in name:
-                full_path = os.path.join('/sys/class/thermal', name)
-                if os.path.isdir(full_path):
-                    thermal_zones.append(full_path)
 
         temperature = 0
-        if thermal_zones:
-            # get the temperatures and sum them up
-            thermal_zone_count = 0
-            for zone in thermal_zones:
-                try:
-                    temperature += float(os.popen('cat ' +
-                                         zone+'/temp').readline().strip())/1000
-                    thermal_zone_count += 1
-                except:
-                    pass
-            # calculate the average
-            if thermal_zone_count > 0:
-                temperature /= thermal_zone_count  # len(thermal_zones)
+        max_temperature = 0
+        crit_temperature = 0
+
+        for chip in sensors.ChipIterator(): # optional arg like "coretemp-*" restricts iterator
+            # Check if the chip has "temp" in it’s name
+            # example for an AMD CPU: k10temp-pci-00c3
+            # example for an Intel CPU: coretemp-isa-0000
+            if "temp" in sensors.chip_snprintf_name(chip):
+                for feature in sensors.FeatureIterator(chip):
+                    if feature.type != sensors.feature.TEMP: continue
+
+                    sub_features = list(sensors.SubFeatureIterator(chip, feature)) # get a list of all subfeatures
+                    
+                    # Some subfeatures can't be read
+                    try:
+                        for sub_feature in sub_features:
+                            name = sub_feature.name.decode("utf-8")
+                            if name == "temp1_input":
+                                temperature = sensors.get_value(chip, sub_feature.number)
+                            elif name == "temp1_max":
+                                max_temperature = sensors.get_value(chip, sub_feature.number)
+                            elif name == "temp1_crit":
+                                crit_temperature = sensors.get_value(chip, sub_feature.number)
+                    except:
+                        return
 
         usage = self.cpu_load.get_cpu_load()
         return {
             'timestamp': time_to_ISO_string(time.gmtime()),
             'temperature': temperature,
+            'maxTemperature': max_temperature,
+            'criticalTemperature': temperature,
             'usage_percent': usage
         }
 

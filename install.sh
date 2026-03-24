@@ -12,14 +12,15 @@ apt install -y \
     python3-augeas \
     python3-apt \
     python3-venv \
-    aptitude
+    aptitude \
+    lm-sensors
 
 # create virtual environment
 python3 -m venv --system-site-packages /opt/tooloop/control-center/venv
 
 # install site packages
 /opt/tooloop/control-center/venv/bin/pip install --upgrade pip
-/opt/tooloop/control-center/venv/bin/pip install Flask pexpect python-crontab zeroconf
+/opt/tooloop/control-center/venv/bin/pip install Flask pexpect python-crontab zeroconf sensors.py
 
 # publish services over Avahi/Bonjour
 cat > /etc/avahi/services/tooloop-control-center.service <<EOF
