@@ -5,10 +5,11 @@ const Services = Vue.createApp({
     data() {
         return {
             api: '/tooloop/api/v1.0/services',
-            vnc: true,
+            vnc: false,
             ssh: true,
             controlCenter: true,
-            screenshots: true
+            screenshots: false,
+            healthLogging: false
         }
     },
 
@@ -30,6 +31,7 @@ const Services = Vue.createApp({
             this.ssh = services.ssh;
             this.controlCenter = services.control_center;
             this.screenshots = services.screenshot_service;
+            this.healthLogging = services.health_logging;
         },
 
         setVnc() {
@@ -83,6 +85,18 @@ const Services = Vue.createApp({
                 .then(response => response.json())
                 .then(data => {
                     this.screenshots = data.screenshot_service;
+                });
+        },
+
+        setHealthLogging() {
+            fetch(this.api + '/healthlogging', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "health_logging": this.healthLogging })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    this.healthLogging = data.health_logging;
                 });
         },
     },

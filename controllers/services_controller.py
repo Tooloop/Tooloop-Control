@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 from subprocess import Popen, PIPE, call
 import fileinput
+import os
+import pwd
 from crontab import CronTab
 
 
 class Services(object):
     """Holds information of the running services."""
 
-    def __init__(self, app):
+    def __init__(self, app, logging):
         super(Services, self).__init__()
         self.app = app
+        self.logging = logging
+        self.config_file = self.app.root_path+"/data/config.cfg"
 
     def is_vnc_running(self):
         ps = Popen('systemctl --machine=tooloop@.host --user status x11vnc | grep "active (running)"',
@@ -56,7 +60,6 @@ class Services(object):
         call('systemctl restart tooloop-control', shell=True)
 
     def disable_control_center(self):
-        print('disable_control_center')
         # change server config
         with fileinput.input(self.app.root_path+"/data/config.cfg", inplace=True) as file:
             for line in file:
@@ -86,10 +89,38 @@ class Services(object):
                 job.enable(False)
         crontab.write()
 
+    def is_health_logging_running(self):
+        return self.app.config["HEALTH_LOGGING"]
+
+    def enable_health_logging(self):
+        self.app.config["HEALTH_LOGGING"] = True
+        with fileinput.input(self.config_file, inplace=True) as file:
+            for line in file:
+                new_line = line.replace(
+                    'HEALTH_LOGGING=False', 'HEALTH_LOGGING=True')
+                print(new_line, end='')
+        os.chown(self.config_file,
+                 pwd.getpwnam("tooloop").pw_uid,
+                 pwd.getpwnam("tooloop").pw_gid)
+        self.logging.start_logging()
+
+    def disable_health_logging(self):
+        self.app.config["HEALTH_LOGGING"] = False
+        with fileinput.input(self.config_file, inplace=True) as file:
+            for line in file:
+                new_line = line.replace(
+                    'HEALTH_LOGGING=True', 'HEALTH_LOGGING=False')
+                print(new_line, end='')
+        os.chown(self.config_file,
+                 pwd.getpwnam("tooloop").pw_uid,
+                 pwd.getpwnam("tooloop").pw_gid)
+        self.logging.stop_logging()
+
     def get_status(self):
         return {
             'vnc': self.is_vnc_running(),
             'ssh': self.is_ssh_running(),
             'control_center': self.is_control_center_running(),
-            'screenshot_service': self.is_screenshot_service_running()
+            'screenshot_service': self.is_screenshot_service_running(),
+            'health_logging': self.is_health_logging_running()
         }

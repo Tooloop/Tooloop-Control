@@ -28,6 +28,7 @@ from controllers.appcenter_controller import AppCenter, PackageJSONProvider
 from controllers.services_controller import Services
 from controllers.screenshot_controller import Screenshots
 from controllers.network_discovery_controller import NetworkDiscovery
+from controllers.logging_controller import Logging
 from utils.time_utils import *
 from utils.exceptions import *
 
@@ -42,7 +43,8 @@ app.config.from_pyfile('data/config.cfg')
 system = System(app)
 presentation = Presentation()
 appcenter = AppCenter(presentation, app)
-services = Services(app)
+logging = Logging(app, system)
+services = Services(app, logging)
 screenshots = Screenshots()
 network_discovery = NetworkDiscovery()
 
@@ -467,7 +469,27 @@ def set_screenshot_service():
         abort(500, e)
 
 
+@app.route('/tooloop/api/v1.0/services/healthlogging', methods=['GET'])
+def health_logging_status():
+    return jsonify({'health_logging': services.is_health_logging_running()})
+
+
+@app.route('/tooloop/api/v1.0/services/healthlogging', methods=['PUT'])
+def set_health_logging():
+    if not request.get_json() or not 'health_logging' in request.get_json():
+        abort(400)
+    try:
+        state = request.get_json()['health_logging']
+        if state == True:
+            services.enable_health_logging()
+        else:
+            services.disable_health_logging()
+        return jsonify({'health_logging': services.is_health_logging_running()})
+    except Exception as e:
+        abort(500, e)
+
 # appcenter
+
 
 @app.route('/tooloop/api/v1.0/appcenter/installed', methods=['GET'])
 def get_installed_app():

@@ -13,7 +13,7 @@
                 <th class="is-narrow has-text-right">Screen sharing (VNC)</th>
                 <td>
                     <input id="vnc-switch" v-on:change="setVnc()" v-model="vnc" name="vnc-switch"
-                        class="switch is-success" type="checkbox" ref="vncSwitch" checked>
+                        class="switch is-success" type="checkbox" ref="vncSwitch">
                     <label for="vnc-switch"></label>
                     <button class="button is-light ml-4" v-if="vnc"
                         onclick="document.location='vnc://{{ip_address}}'">Connect</button>
@@ -45,9 +45,17 @@
                 <th class="is-narrow has-text-right">Screenshots</th>
                 <td>
                     <input id="screenshots-switch" v-on:change="setScreenshots()" v-model="screenshots"
-                        name="screenshots-switch" class="switch is-success" type="checkbox" ref="screenshotsSwitch"
-                        checked>
+                        name="screenshots-switch" class="switch is-success" type="checkbox" ref="screenshotsSwitch">
                     <label for="screenshots-switch"></label>
+                </td>
+            </tr>
+
+            <tr>
+                <th class="is-narrow has-text-right">Health Logging</th>
+                <td>
+                    <input id="health-logging-switch" v-on:change="setHealthLogging()" v-model="healthLogging"
+                        name="screenshots-switch" class="switch is-success" type="checkbox" ref="healthLoggingSwitch">
+                    <label for="health-logging-switch"></label>
                 </td>
             </tr>
 

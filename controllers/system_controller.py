@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from subprocess import check_output, check_call, Popen, PIPE, call
 import os
+import pwd
 import time
 from flask import jsonify
 import pexpect
-import fileinput
 import json
 import datetime
 from pytz import common_timezones
@@ -23,15 +23,17 @@ class System(object):
         self.app = app
         self.cpu_load = CpuLoad()
         self.needs_reboot = False
+        self.runtime_schedule = self.app.root_path+'/data/runtime-schedule.json'
+
         # read runtime schedule from disk
         try:
-            with open(self.app.root_path+'/data/runtime-schedule.json') as json_data:
+            with open(self.runtime_schedule) as json_data:
                 self.runtime_schedule = json.load(json_data)
         except Exception as e:
             self.runtime_schedule = {
                 'startup': {
                     'enabled': False,
-                    'weekdays': [1,2,3,4,5],
+                    'weekdays': [1, 2, 3, 4, 5],
                     'time': {
                         'hours': 8,
                         'minutes': 0
@@ -40,7 +42,7 @@ class System(object):
                 'shutdown': {
                     'enabled': False,
                     'type': 'poweroff',
-                    'weekdays': [1,2,3,4,5],
+                    'weekdays': [1, 2, 3, 4, 5],
                     'time': {
                         'hours': 20,
                         'minutes': 0
@@ -50,7 +52,6 @@ class System(object):
 
         self.setup_runtime_schedule()
         sensors.init()
-
 
     def __exit__(self, exc_type, exc_value, traceback):
         sensors.cleanup()
@@ -91,7 +92,7 @@ class System(object):
                 file.write(filedata)
         except Exception as e:
             raise e
-        
+
         # Help Chromium start after changing hostname
         # https://issues.chromium.org/issues/41103620
         call('rm -rf /home/tooloop/snap/chromium/common/chromium/Singleton*', shell=True)
@@ -111,7 +112,8 @@ class System(object):
         return uptime_string
 
     def get_timezone(self):
-        timedate_info = check_output(['timedatectl', 'show']).decode().rstrip('\n')
+        timedate_info = check_output(
+            ['timedatectl', 'show']).decode().rstrip('\n')
         config = configparser.ConfigParser()
         config.read_string('[TimeDateInfo]\n' + timedate_info)
         return config['TimeDateInfo']['Timezone']
@@ -120,7 +122,7 @@ class System(object):
         # nothing to do
         if timezone == self.get_timezone():
             return jsonify({'timezone': timezone})
-        
+
         # change timezone
         try:
             os.popen('timedatectl set-timezone ' + timezone)
@@ -170,26 +172,31 @@ class System(object):
         max_temperature = 0
         crit_temperature = 0
 
-        for chip in sensors.ChipIterator(): # optional arg like "coretemp-*" restricts iterator
+        for chip in sensors.ChipIterator():  # optional arg like "coretemp-*" restricts iterator
             # Check if the chip has "temp" in it’s name
             # example for an AMD CPU: k10temp-pci-00c3
             # example for an Intel CPU: coretemp-isa-0000
             if "temp" in sensors.chip_snprintf_name(chip):
                 for feature in sensors.FeatureIterator(chip):
-                    if feature.type != sensors.feature.TEMP: continue
+                    if feature.type != sensors.feature.TEMP:
+                        continue
 
-                    sub_features = list(sensors.SubFeatureIterator(chip, feature)) # get a list of all subfeatures
-                    
+                    sub_features = list(sensors.SubFeatureIterator(
+                        chip, feature))  # get a list of all subfeatures
+
                     # Some subfeatures can't be read
                     try:
                         for sub_feature in sub_features:
                             name = sub_feature.name.decode("utf-8")
                             if name == "temp1_input":
-                                temperature = sensors.get_value(chip, sub_feature.number)
+                                temperature = sensors.get_value(
+                                    chip, sub_feature.number)
                             elif name == "temp1_max":
-                                max_temperature = sensors.get_value(chip, sub_feature.number)
+                                max_temperature = sensors.get_value(
+                                    chip, sub_feature.number)
                             elif name == "temp1_crit":
-                                crit_temperature = sensors.get_value(chip, sub_feature.number)
+                                crit_temperature = sensors.get_value(
+                                    chip, sub_feature.number)
                     except:
                         return
 
@@ -253,7 +260,8 @@ class System(object):
             '/usr/bin/sudo -u tooloop /usr/bin/passwd tooloop')
         try:
             # Prompt for old password
-            i = child.expect(['[Oo]ld [Pp]assword', '[Cc]urrent password', '[Nn]ew [Pp]assword'])
+            i = child.expect(
+                ['[Oo]ld [Pp]assword', '[Cc]urrent password', '[Nn]ew [Pp]assword'])
 
             # Type old password
             if i == 0 or i == 1:
@@ -264,7 +272,8 @@ class System(object):
             child.sendline(new_password)
 
             # Prompt to retype new password
-            i = child.expect(['[Nn]ew [Pp]assword', '[Rr]etype', '[Rr]e-enter'])
+            i = child.expect(
+                ['[Nn]ew [Pp]assword', '[Rr]etype', '[Rr]e-enter'])
             if i == 0:
                 message = child.before
                 print('Host did not like new password. Here is what it said...')
@@ -278,12 +287,11 @@ class System(object):
             child.sendline(new_password)
             child.expect('[$#] ')
             print(child.after)
-        
+
         except pexpect.TIMEOUT:
             return child.before.decode().lstrip(': \r\n').rstrip('\r\n')
         except pexpect.EOF:
             return child.before.decode().lstrip(': \r\n').rstrip('\r\n')
-
 
     def to_dict(self):
         return {
@@ -351,8 +359,12 @@ class System(object):
         self.set_single_schedule('shutdown', schedule)
         # write changes to disk
         try:
-            with open(self.app.root_path+'/data/runtime-schedule.json', 'w') as json_file:
+            with open(self.runtime_schedule, 'w') as json_file:
                 json.dump(self.runtime_schedule, json_file, indent=4)
+
+            os.chown(self.runtime_schedule,
+                 pwd.getpwnam("tooloop").pw_uid,
+                 pwd.getpwnam("tooloop").pw_gid)
         except Exception as e:
             raise e
         # set up the rtc wakealarm and cron jobs
