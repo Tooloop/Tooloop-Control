@@ -8,31 +8,36 @@ from utils.time_utils import ISO_string_to_local_time
 import atexit
 import glob
 import time
+import sys
 
 
 class Logging(object):
 
     def __init__(self, app, system):
+        # Skip initialization in Flask reloader child processes
+        # Only initialize in the main reloader process
+        if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+            return
+
         super(Logging, self).__init__()
         self.app = app
         self.system = system
         self.data_lock = threading.Lock()
         self.timer = None
-        self.INTERVAL = 5  # seconds
+        self.INTERVAL = self.app.config.get("LOGGING_INTERVAL", 30)  # seconds
         self.csv_file = None
         self.logs_dir = "/assets/logs"
         self.is_logging = False
-        self.MAX_LOG_AGE = 60  # 7 days in seconds
+        self.MAX_LOG_AGE = self.app.config.get("LOGGING_MAX_AGE", 604800)  # 7 days in seconds
 
         self.cleanup_old_files()
 
-        if self.app.config["HEALTH_LOGGING"]:
+        if self.app.config.get("LOGGING_INTERVAL", False):
             self.start_logging()
 
         atexit.register(self.stop_logging)
 
     def __del__(self):
-        print(" * __del__ logging")
         self.stop_logging()
 
     def start_logging(self):
@@ -64,11 +69,11 @@ class Logging(object):
         self.timer.start()
 
     def stop_logging(self):
+        print(" * Stop health logging")
         self.is_logging = False
         try:
             if self.timer:
                 self.timer.cancel()
-                print(" * Stopped health logging")
         except Exception as e:
             print(e)
 
@@ -105,6 +110,6 @@ class Logging(object):
         files = glob.glob(os.path.join(
             self.logs_dir, 'health-monitoring_*.csv'))
         for file in files:
-            # Check if the file is older than MAX_LOG_AGE days and delete i
+            # Check if the file is older than MAX_LOG_AGE days and delete it
             if time.time() - os.path.getctime(file) > self.MAX_LOG_AGE:
                 os.remove(file)
