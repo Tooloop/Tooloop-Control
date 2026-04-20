@@ -14,7 +14,12 @@ import sys
 class Logging(object):
 
     def __init__(self, app, system):
-        # Skip initialization in Flask reloader child processes
+        # Initialize critical attributes early to ensure they exist even in child processes
+        self.timer = None
+        self.is_logging = False
+        self.csv_file = None
+
+        # Skip full initialization in Flask reloader child processes
         # Only initialize in the main reloader process
         if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
             return
@@ -23,11 +28,8 @@ class Logging(object):
         self.app = app
         self.system = system
         self.data_lock = threading.Lock()
-        self.timer = None
         self.INTERVAL = self.app.config.get("LOGGING_INTERVAL", 30)  # seconds
-        self.csv_file = None
         self.logs_dir = "/assets/logs"
-        self.is_logging = False
         self.MAX_LOG_AGE = self.app.config.get("LOGGING_MAX_AGE", 604800)  # 7 days in seconds
 
         self.cleanup_old_files()
@@ -69,10 +71,10 @@ class Logging(object):
         self.timer.start()
 
     def stop_logging(self):
-        print(" * Stop health logging")
         self.is_logging = False
         try:
             if self.timer:
+                print(" * Stop health logging")
                 self.timer.cancel()
         except Exception as e:
             print(e)
