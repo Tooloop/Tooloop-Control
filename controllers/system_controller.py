@@ -23,11 +23,12 @@ class System(object):
         self.app = app
         self.cpu_load = CpuLoad()
         self.needs_reboot = False
-        self.runtime_schedule = self.app.root_path+'/data/runtime-schedule.json'
+        self.runtime_schedule = None
+        self.runtime_schedule_path = self.app.root_path+'/data/runtime-schedule.json'
 
         # read runtime schedule from disk
         try:
-            with open(self.runtime_schedule) as json_data:
+            with open(self.runtime_schedule_path) as json_data:
                 self.runtime_schedule = json.load(json_data)
         except Exception as e:
             self.runtime_schedule = {
@@ -359,10 +360,10 @@ class System(object):
         self.set_single_schedule('shutdown', schedule)
         # write changes to disk
         try:
-            with open(self.runtime_schedule, 'w') as json_file:
+            with open(self.runtime_schedule_path, 'w') as json_file:
                 json.dump(self.runtime_schedule, json_file, indent=4)
 
-            os.chown(self.runtime_schedule,
+            os.chown(self.runtime_schedule_path,
                  pwd.getpwnam("tooloop").pw_uid,
                  pwd.getpwnam("tooloop").pw_gid)
         except Exception as e:
