@@ -116,116 +116,75 @@
     </div>
 </section>
 
+<!-- Schedule -->
+
 <section class="section has-background-white-bis">
     <div id="schedule" class="container">
         <h2 class="title is-size-4">Runtime Schedule</h2>
 
+        <!-- Enable schedule switch -->
+        <div class="my-5">
+            <input type="checkbox" v-model="runtimeSchedule.enabled" id="enable-schedule-switch" name="shutdown-switch"
+                class="switch is-success" v-on:change="saveSchedule()">
+            <label for="enable-schedule-switch">Enable</label>
+        </div>
+
         <table class="table is-fullwidth" style="background-color: transparent;">
+            <tr v-for="(day, i) in runtimeSchedule.schedule">
+                <th class="is-narrow">[[day.name]]</th>
+                <td class="is-narrow start-up-cell">
+                    <!-- Start up switch -->
+                    <input type="checkbox" v-model="day.startup" :id="'startup-switch-'+day.num" name="startup-switch"
+                        class="switch is-small is-success" v-on:change="saveSchedule()" :disabled="!runtimeSchedule.enabled">
+                    <label class="is-size-6 pt-0" :class="{'has-text-grey-light': !day.startup}"
+                        :for="'startup-switch-'+day.num">Start up at </label>
 
-            <!-- Start up -->
+                    <!-- Start up time -->
+                    <div class="select is-small">
+                        <select v-model.number="day.startupTime.hours" :disabled="!day.startup || !runtimeSchedule.enabled"
+                            v-on:change="saveSchedule()">
+                            <option v-for="n in 24" v-bind:value="n-1">[[ pad(n-1, 2) ]]</option>
+                        </select>
+                    </div>
 
-            <tr>
-                <th class="is-narrow">
-                    <!-- Switch -->
-                    <input type="checkbox" v-model="schedule.startup.enabled" id="startup-switch" name="startup-switch"
-                        class="switch is-success" v-on:change="saveSchedule()">
-                    <label for="startup-switch">Start up</label>
-                </th>
-            </tr>
+                    :
 
-            <tr>
-                <td>
-                    <div class="is-flex is-flex-wrap-wrap">
-
-                        <!-- Days -->
-                        <div class="field has-addons mr-3">
-                            <p class="control" v-for="day in weekdays">
-                                <button class="button is-small" v-bind:disabled="!schedule.startup.enabled"
-                                    v-bind:class="{'is-info': schedule.startup.weekdays.indexOf(day.num) != -1}"
-                                    v-on:click="toggleDay('startup', day.num); saveSchedule()">
-                                    [[day.name]]
-                                </button>
-                            </p>
-                        </div>
-
-                        <!-- Time -->
-                        <div class="field has-addons">
-                            <span class="mr-3">at</span>
-
-                            <div class="select is-small">
-                                <select v-model.number="schedule.startup.time.hours"
-                                    v-bind:disabled="!schedule.startup.enabled" v-on:change="saveSchedule()">
-                                    <option v-for="n in 24" v-bind:value="n-1">[[ pad(n-1, 2) ]]</option>
-                                </select>
-                            </div>
-
-                            &nbsp;:&nbsp;
-
-                            <div class="select is-small">
-                                <select v-model.number="schedule.startup.time.minutes"
-                                    v-bind:disabled="!schedule.startup.enabled" v-on:change="saveSchedule()">
-                                    <option v-for="n in 12" v-bind:value="(n - 1) * 5">[[ pad((n - 1) * 5, 2) ]]
-                                    </option>
-                                </select>.
-                            </div>
-                        </div>
-
+                    <div class="select is-small">
+                        <select v-model.number="day.startupTime.minutes" :disabled="!day.startup || !runtimeSchedule.enabled"
+                            v-on:change="saveSchedule()">
+                            <option v-for="n in 12" v-bind:value="(n - 1) * 5">[[ pad((n - 1) * 5, 2) ]]
+                            </option>
+                        </select>.
                     </div>
                 </td>
-            </tr>
+                <td class="shutdown-cell">
+                    <!-- Shutdown switch -->
+                    <input type="checkbox" v-model="day.shutdown" :id="'shutdown-switch-'+day.num"
+                        name="shutdown-switch" class="switch is-small is-success" v-on:change="saveSchedule()"
+                        :disabled="!runtimeSchedule.enabled">
+                    <label class="is-size-6 pt-0" :class="{'has-text-grey-light': !day.shutdown}"
+                        :for="'shutdown-switch-'+day.num">Power off at </label>
 
-            <!-- Power off -->
-
-            <tr>
-                <th class="is-narrow">
-                    <!-- Switch -->
-                    <input type="checkbox" v-model="schedule.shutdown.enabled" id="shutdown-switch"
-                        name="shutdown-switch" class="switch is-success" v-on:change="saveSchedule()">
-                    <label for="shutdown-switch">Power off</label>
-                </th>
-            </tr>
-
-            <tr>
-                <td>
-                    <div class="is-flex is-flex-wrap-wrap">
-
-                        <!-- Days -->
-                        <div class="field has-addons mr-3">
-                            <p class="control" v-for="day in weekdays">
-                                <button class="button is-small" v-bind:disabled="!schedule.shutdown.enabled"
-                                    v-bind:class="{'is-info': schedule.shutdown.weekdays.indexOf(day.num) != -1}"
-                                    v-on:click="toggleDay('shutdown', day.num); saveSchedule();">
-                                    [[day.name]]
-                                </button>
-                            </p>
-                        </div>
-
-                        <!-- Time -->
-                        <div class="field has-addons">
-                            <span class="mr-3">at</span>
-
-                            <div class="select is-small">
-                                <select v-model.number="schedule.shutdown.time.hours"
-                                    v-bind:disabled="!schedule.shutdown.enabled" v-on:change="saveSchedule()">
-                                    <option v-for="n in 24" v-bind:value="n-1">[[ pad(n-1, 2) ]]</option>
-                                </select>
-                            </div>
-
-                            &nbsp;:&nbsp;
-
-                            <div class="select is-small">
-                                <select v-model.number="schedule.shutdown.time.minutes"
-                                    v-bind:disabled="!schedule.shutdown.enabled" v-on:change="saveSchedule()">
-                                    <option v-for="n in 12" v-bind:value="(n - 1) * 5">[[ pad((n - 1) * 5, 2) ]]
-                                    </option>
-                                </select>.
-                            </div>
-                        </div>
-
+                    <!-- Shutdown time -->
+                    <div class="select is-small">
+                        <select v-model.number="day.shutdownTime.hours" :disabled="!day.shutdown || !runtimeSchedule.enabled"
+                            v-on:change="saveSchedule()">
+                            <option v-for="n in 24" v-bind:value="n-1">[[ pad(n-1, 2) ]]</option>
+                        </select>
                     </div>
+
+                    :
+
+                    <div class="select is-small">
+                        <select v-model.number="day.shutdownTime.minutes" :disabled="!day.shutdown || !runtimeSchedule.enabled"
+                            v-on:change="saveSchedule()">
+                            <option v-for="n in 12" v-bind:value="(n - 1) * 5">[[ pad((n - 1) * 5, 2) ]]
+                            </option>
+                        </select>.
+                    </div>
+
                 </td>
             </tr>
-
         </table>
 
     </div>
@@ -240,7 +199,7 @@
     const hostname = {{ hostname | tojson}};
     const uptime = {{ uptime | tojson}};
     const timezone = {{ timezone | tojson}};
-    const schedule = {{ runtime_schedule | tojson}};
+    const runtimeSchedule = {{ runtime_schedule | tojson }};
 </script>
 <script src="{{ url_for('static', filename='js/system.js') }}"></script>
 <script src="{{ url_for('static', filename='js/schedule.js') }}"></script>

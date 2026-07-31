@@ -1,15 +1,33 @@
 #schedule {
-    td, th {
-        border: none;
+    td {
+        white-space: nowrap;
+    }
+
+    .start-up-cell {
+        padding-right: 3rem;
     }
 
     @include mobile {
-        th {
-            border-bottom: 0.75rem solid transparent;
-            border-top: 1.5rem solid transparent;
+        tr {
+            border: 1px solid #dbdbdb;
+            border-width: 0 0 1px 0;
         }
-        tr:first-child th {
-            border-top: none;
+
+        td,
+        th {
+            width: initial;
+            border: none;
+            display: block;
+            padding: 0.25rem .75em;
+        }
+
+        th {
+            padding-top: 0.75rem;
+        }
+
+        td:last-child {
+            padding-bottom: 0.75rem;
         }
     }
+
 }

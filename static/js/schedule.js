@@ -5,47 +5,29 @@ const Schedule = Vue.createApp({
     data() {
         return {
             api: '/tooloop/api/v1.0/system',
-            weekdays: [
-                { num: 1, name: "Mo" },
-                { num: 2, name: "Tu" },
-                { num: 3, name: "We" },
-                { num: 4, name: "Th" },
-                { num: 5, name: "Fr" },
-                { num: 6, name: "Sa" },
-                { num: 0, name: "Su" },
-            ],
-            schedule: {
-                startup: {
-                    enabled: false,
-                    weekdays: [],
-                    time: { hours: 8, minutes: 0 }
-                },
-                shutdown: {
-                    enabled: false,
-                    weekdays: [],
-                    time: { hours: 20, minutes: 0 }
-                }
+            runtimeSchedule: {
+                enabled: false,
+                schedule: [
+                    { num: 1, name: "Mo", startup: false, startupTime: { hours: 8, minutes: 0 }, shutdown: false, shutdownTime: { hours: 8, minutes: 0 } },
+                    { num: 2, name: "Tu", startup: false, startupTime: { hours: 8, minutes: 0 }, shutdown: false, shutdownTime: { hours: 8, minutes: 0 } },
+                    { num: 3, name: "We", startup: false, startupTime: { hours: 8, minutes: 0 }, shutdown: false, shutdownTime: { hours: 8, minutes: 0 } },
+                    { num: 4, name: "Th", startup: false, startupTime: { hours: 8, minutes: 0 }, shutdown: false, shutdownTime: { hours: 8, minutes: 0 } },
+                    { num: 5, name: "Fr", startup: false, startupTime: { hours: 8, minutes: 0 }, shutdown: false, shutdownTime: { hours: 8, minutes: 0 } },
+                    { num: 6, name: "Sa", startup: false, startupTime: { hours: 8, minutes: 0 }, shutdown: false, shutdownTime: { hours: 8, minutes: 0 } },
+                    { num: 0, name: "Su", startup: false, startupTime: { hours: 8, minutes: 0 }, shutdown: false, shutdownTime: { hours: 8, minutes: 0 } }
+                ]
             }
         }
     },
 
     created() {
-        this.schedule = schedule;
+        this.runtimeSchedule = runtimeSchedule;
     },
 
     methods: {
 
         pad(num, digits) {
             return String(num).padStart(digits, '0');
-        },
-
-        toggleDay(schedule, day) {
-            const index = this.schedule[schedule].weekdays.indexOf(day);
-            if (index > -1) {
-                this.schedule[schedule].weekdays.splice(index, 1);
-            } else {
-                this.schedule[schedule].weekdays.push(day);
-            }
         },
 
         getSchedule() {
@@ -60,11 +42,11 @@ const Schedule = Vue.createApp({
             fetch(this.api + '/runtimeschedule', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.schedule)
+                body: JSON.stringify(this.runtimeSchedule)
             })
                 .then(response => response.json())
                 .then(data => {
-                    this.schedule = data;
+                    this.runtimeSchedule = data;
                 });
         }
 
