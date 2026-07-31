@@ -35,6 +35,9 @@ class System(object):
                 schedule = json.load(json_data)
                 self.validate_schedule(schedule)
                 self.runtime_schedule = schedule
+                schedule = json.load(json_data)
+                self.validate_schedule(schedule)
+                self.runtime_schedule = schedule
         except Exception as e:
             self.runtime_schedule = {
                 'enabled': False,
