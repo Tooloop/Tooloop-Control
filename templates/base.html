@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome-6.0.0/css/all.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
 </head>
 
 <body>
@@ -114,9 +116,9 @@
     </div>
 
     {% if environment == "production" %}
-    <script src="{{ url_for('static', filename='vendor/vue-3.2.31/vue.global.prod.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/vue-3.5.40/vue.global.prod.js') }}"></script>
     {% else %}
-    <script src="{{ url_for('static', filename='vendor/vue-3.2.31/vue.global.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/vue-3.5.40/vue.global.js') }}"></script>
     {% endif %}
 
     <script>
