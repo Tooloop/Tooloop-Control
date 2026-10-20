@@ -36,6 +36,27 @@
                 <td>[[uptimeString]]</td>
             </tr>
 
+            <!-- Watchdog -->
+            <tr>
+                <th class="is-narrow has-text-right">Presentation watchdog</th>
+                <td>
+                    <input id="watchdog-switch" v-on:change="setWatchdog()" v-model="watchdogEnabled"
+                        name="watchdog-switch" class="switch is-success" type="checkbox">
+                    <label for="watchdog-switch"></label>
+                    <article class="message is-info is-small" v-if="watchdogEnabled">
+                        <div class="message-body" style="line-height: 2 !important;">
+                            <p class="mb-3">Make sure, the presentation regularly
+                                sends a heartbeat to the watchdog (e. g. every 20 s).
+                                Otherwise, the device will reboot after 60 seconds.</p>
+                            <pre><code><strong>PUT</strong> http://localhost/tooloop/api/v1.0/system/watchdog/reset
+                                <strong>Content-Type:</strong> application/json
+                                <strong>RequestBody:</strong> {"healthy": true}
+                            </code></pre>
+                        </div>
+                    </article>
+                </td>
+            </tr>
+
             <!-- Timezone -->
             <tr>
                 <th class="is-narrow has-text-right">Timezone</th>
@@ -240,6 +261,7 @@
     const hostname = {{ hostname | tojson}};
     const uptime = {{ uptime | tojson}};
     const timezone = {{ timezone | tojson}};
+    const watchdogEnabled = {{ watchdog_enabled | tojson}};
     const schedule = {{ runtime_schedule | tojson}};
 </script>
 <script src="{{ url_for('static', filename='js/system.js') }}"></script>

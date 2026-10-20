@@ -32,6 +32,14 @@ hr {
     height: 1px;
 }
 
+code {
+    white-space: pre-line;
+}
+
+pre code {
+    color: $red;
+}
+
 .title {
     word-break: unset;
     text-overflow: ellipsis;

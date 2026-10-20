@@ -8,6 +8,7 @@ const System = Vue.createApp({
             hostname: null,
             uptime: null,
             timezone: null,
+            watchdogEnabled: false,
             oldPassword: "",
             newPassword: "",
             repeatNewPassword: "",
@@ -18,6 +19,7 @@ const System = Vue.createApp({
         this.hostname = hostname;
         this.uptime = uptime;
         this.timezone = timezone;
+        this.watchdogEnabled = watchdogEnabled;
     },
 
     computed: {
@@ -85,6 +87,31 @@ const System = Vue.createApp({
                     this.timezone = data.timezone;
                     // let some time pass so the uptime is calculated correctly
                     setTimeout(this.getUptime, 500);
+                });
+        },
+
+        setWatchdog() {
+            const previousState = !this.watchdogEnabled;
+            let responseReceived = false;
+            fetch(this.api + '/watchdog', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "enabled": this.watchdogEnabled })
+            })
+                .then(async response => {
+                    const data = await response.json();
+                    responseReceived = true;
+                    if (!response.ok) {
+                        this.watchdogEnabled = typeof data.enabled === 'boolean' ? data.enabled : previousState;
+                        throw new Error(data.error || 'Could not change the hardware watchdog state.');
+                    }
+                    this.watchdogEnabled = data.enabled;
+                })
+                .catch(error => {
+                    if (!responseReceived) {
+                        this.watchdogEnabled = previousState;
+                    }
+                    alert(error.message);
                 });
         },
 

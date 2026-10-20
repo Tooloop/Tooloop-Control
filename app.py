@@ -111,6 +111,7 @@ def render_system():
                            uptime=system.get_uptime(),
                            timezone=system.get_timezone(),
                            available_timezones=system.get_available_timezones(),
+                           watchdog_enabled=system.is_watchdog_configured(),
                            ssh_running=services.is_ssh_running(),
                            vnc_running=services.is_vnc_running(),
                            runtime_schedule=system.get_runtime_schedule(),
@@ -328,6 +329,43 @@ def set_runtime_schedule():
         abort(500, e)
 
 
+@app.route('/tooloop/api/v1.0/system/watchdog', methods=['PUT'])
+def set_watchdog():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or type(data.get('enabled')) is not bool:
+        abort(400)
+    try:
+        enabled = system.set_watchdog_enabled(data['enabled'])
+        return jsonify({'enabled': enabled})
+    except Exception as e:
+        return jsonify({'enabled': system.is_watchdog_enabled(), 'error': str(e)}), 503
+
+
+@app.route('/tooloop/api/v1.0/system/watchdog/reset', methods=['POST'])
+def reset_watchdog():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or type(data.get('healthy')) is not bool:
+        abort(400)
+    try:
+        healthy = system.reset_watchdog(data['healthy'])
+        return jsonify({'healthy': healthy, 'reset': healthy})
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 409
+    except Exception as e:
+        return jsonify({'error': str(e)}), 503
+
+
+@app.route('/tooloop/api/v1.0/system/watchdog/reset', methods=['GET'])
+def reset_watchdog_healthy():
+    try:
+        system.reset_watchdog(True)
+        return jsonify({'healthy': True, 'reset': True})
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 409
+    except Exception as e:
+        return jsonify({'error': str(e)}), 503
+
+
 # presentation
 
 @app.route('/tooloop/api/v1.0/presentation/start', methods=['GET'])
@@ -341,16 +379,17 @@ def start_presentation():
 
 @app.route('/tooloop/api/v1.0/presentation/stop', methods=['GET'])
 def stop_presentation():
-    return_code = presentation.stop()
     try:
-        return jsonify({'stop': str(return_code)})
-    except Exception as e:
-        abort(500, e)
+        return_code = presentation.stop()
+    finally:
+        system.stop_watchdog_session()
+    return jsonify({'stop': str(return_code)})
 
 
 @app.route('/tooloop/api/v1.0/presentation/reset', methods=['GET'])
 def reset_presentation():
     try:
+        system.stop_watchdog_session()
         return_code = presentation.reset()
         return jsonify({'reset': str(return_code)})
     except Exception as e:

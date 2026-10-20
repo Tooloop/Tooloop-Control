@@ -3,6 +3,11 @@ from subprocess import check_output, check_call, Popen, PIPE, call
 import os
 import pwd
 import time
+import fcntl
+import glob
+import re
+import struct
+import threading
 from flask import jsonify
 import pexpect
 import json
@@ -13,6 +18,12 @@ from utils.cpu_load import CpuLoad
 from crontab import CronTab
 import configparser
 import sensors
+
+WDIOC_GETSUPPORT = 0x80285700
+WDIOC_SETOPTIONS = 0x80045704
+WDIOC_SETTIMEOUT = 0xC0045706
+WDIOF_MAGICCLOSE = 0x0100
+WDIOS_DISABLECARD = 0x0001
 
 
 class System(object):
@@ -25,6 +36,10 @@ class System(object):
         self.needs_reboot = False
         self.runtime_schedule = None
         self.runtime_schedule_path = self.app.root_path+'/data/runtime-schedule.json'
+        self.watchdog_lock = threading.Lock()
+        self.watchdog_fd = None
+        self.watchdog_healthy = None
+        self.watchdog_module_loaded_by_app = False
 
         # read runtime schedule from disk
         try:
@@ -255,6 +270,205 @@ class System(object):
             check_call(["poweroff"])
         except Exception as e:
             raise
+
+    def is_watchdog_enabled(self):
+        with self.watchdog_lock:
+            return self.watchdog_fd is not None
+
+    def is_watchdog_configured(self):
+        return bool(self.app.config.get('WATCHDOG_ENABLED', False))
+
+    def _get_runtime_watchdog_usec(self):
+        output = check_output([
+            'systemctl', 'show', '--property=RuntimeWatchdogUSec', '--value'
+        ]).decode().strip()
+        return int(output)
+
+    def _watchdog_device(self):
+        configured_device = self.app.config.get('WATCHDOG_DEVICE', '/dev/watchdog')
+        if os.path.exists(configured_device):
+            return configured_device
+        if configured_device == '/dev/watchdog':
+            devices = sorted(glob.glob('/dev/watchdog[0-9]*'))
+            if devices:
+                return devices[0]
+        raise RuntimeError(
+            'Hardware watchdog device {} was not found; ensure its kernel driver '
+            'is loaded and the device node exists'.format(configured_device))
+
+    def _watchdog_module(self):
+        module = self.app.config.get('WATCHDOG_MODULE', 'iTCO_wdt')
+        if not re.fullmatch(r'[A-Za-z0-9_-]+', module):
+            raise ValueError('Invalid watchdog kernel module name')
+        return module
+
+    def _load_watchdog_module(self):
+        module = self._watchdog_module()
+        module_path = '/sys/module/{}'.format(module.replace('-', '_'))
+        if os.path.exists(module_path):
+            return
+        check_call(['modprobe', module])
+        self.watchdog_module_loaded_by_app = True
+
+    def _unload_watchdog_module(self):
+        if not self.watchdog_module_loaded_by_app:
+            return
+        try:
+            check_call(['modprobe', '-r', self._watchdog_module()])
+            self.watchdog_module_loaded_by_app = False
+        except Exception:
+            self.app.logger.exception('Could not unload the hardware watchdog module')
+
+    def _persist_watchdog_enabled(self, enabled):
+        config_path = os.path.join(self.app.root_path, 'data', 'config.cfg')
+        with open(config_path, 'r') as config_file:
+            lines = config_file.readlines()
+
+        setting = 'WATCHDOG_ENABLED={}\n'.format(enabled)
+        updated = False
+        for index, line in enumerate(lines):
+            if line.startswith('WATCHDOG_ENABLED='):
+                lines[index] = setting
+                updated = True
+                break
+        if not updated:
+            if lines and not lines[-1].endswith('\n'):
+                lines[-1] += '\n'
+            lines.append(setting)
+
+        with open(config_path, 'w') as config_file:
+            config_file.writelines(lines)
+        os.chown(config_path,
+                 pwd.getpwnam('tooloop').pw_uid,
+                 pwd.getpwnam('tooloop').pw_gid)
+        self.app.config['WATCHDOG_ENABLED'] = enabled
+
+    def _configure_watchdog(self, fd):
+        timeout = int(self.app.config.get('WATCHDOG_TIMEOUT', 60))
+        if timeout <= 0:
+            raise ValueError('Watchdog timeout must be a positive number of seconds')
+
+        timeout_buffer = bytearray(struct.pack('i', timeout))
+        fcntl.ioctl(fd, WDIOC_SETTIMEOUT, timeout_buffer, True)
+        actual_timeout = struct.unpack('i', timeout_buffer)[0]
+        if actual_timeout != timeout:
+            raise RuntimeError(
+                'Hardware watchdog set timeout to {} seconds, not {} seconds'.format(
+                    actual_timeout, timeout))
+
+    def _deactivate_watchdog(self, fd):
+        disable_buffer = bytearray(struct.pack('i', WDIOS_DISABLECARD))
+        try:
+            fcntl.ioctl(fd, WDIOC_SETOPTIONS, disable_buffer, True)
+        except OSError:
+            support = bytearray(40)
+            fcntl.ioctl(fd, WDIOC_GETSUPPORT, support, True)
+            options = struct.unpack_from('I', support)[0]
+            if not options & WDIOF_MAGICCLOSE:
+                raise RuntimeError('This hardware watchdog cannot be safely disabled')
+            os.write(fd, b'V')
+        os.close(fd)
+
+    def _activate_watchdog_locked(self):
+        if self.watchdog_fd is not None:
+            return
+        if self._get_runtime_watchdog_usec() > 0:
+            raise RuntimeError(
+                'systemd RuntimeWatchdogSec is active; it must be disabled '
+                'so only the kiosk health route feeds the hardware watchdog')
+
+        module_was_loaded_by_app = self.watchdog_module_loaded_by_app
+        self._load_watchdog_module()
+        try:
+            fd = os.open(self._watchdog_device(), os.O_WRONLY | os.O_CLOEXEC)
+        except Exception:
+            if not module_was_loaded_by_app:
+                self._unload_watchdog_module()
+            raise
+
+        try:
+            self._configure_watchdog(fd)
+        except Exception as error:
+            try:
+                self._deactivate_watchdog(fd)
+            except Exception as disable_error:
+                self.watchdog_fd = fd
+                self.watchdog_healthy = None
+                self.app.logger.exception('Could not safely deactivate the hardware watchdog')
+                raise RuntimeError(
+                    'Watchdog setup failed and the device may still be active: {}'.format(
+                        disable_error)) from error
+            if not module_was_loaded_by_app:
+                self._unload_watchdog_module()
+            raise
+
+        self.watchdog_fd = fd
+        self.watchdog_healthy = None
+
+    def set_watchdog_enabled(self, enabled, persist=True):
+        if type(enabled) is not bool:
+            raise ValueError('Watchdog enabled state must be a boolean')
+
+        with self.watchdog_lock:
+            if enabled:
+                self._activate_watchdog_locked()
+                try:
+                    if persist:
+                        self._persist_watchdog_enabled(True)
+                except Exception:
+                    try:
+                        self._stop_watchdog_session_locked()
+                    except Exception:
+                        self.app.logger.exception('Could not stop watchdog after config persistence failed')
+                    raise
+                return True
+
+            if self.watchdog_fd is None:
+                if persist:
+                    self._persist_watchdog_enabled(False)
+                return False
+
+            fd = self.watchdog_fd
+            if persist:
+                self._persist_watchdog_enabled(False)
+            try:
+                self._stop_watchdog_session_locked()
+            except Exception:
+                if persist:
+                    try:
+                        self._persist_watchdog_enabled(True)
+                    except Exception:
+                        self.app.logger.exception('Could not restore the persisted watchdog state')
+                raise
+            return False
+
+    def _stop_watchdog_session_locked(self):
+        if self.watchdog_fd is None:
+            return
+        fd = self.watchdog_fd
+        self._deactivate_watchdog(fd)
+        self.watchdog_fd = None
+        self.watchdog_healthy = None
+        self._unload_watchdog_module()
+
+    def stop_watchdog_session(self):
+        with self.watchdog_lock:
+            self._stop_watchdog_session_locked()
+
+    def reset_watchdog(self, healthy=True):
+        if type(healthy) is not bool:
+            raise ValueError('Kiosk health state must be a boolean')
+
+        with self.watchdog_lock:
+            self.watchdog_healthy = healthy
+            if not healthy:
+                return False
+            if self.watchdog_fd is None:
+                if not self.is_watchdog_configured():
+                    raise RuntimeError('Hardware watchdog is not enabled in configuration')
+                self._activate_watchdog_locked()
+            os.write(self.watchdog_fd, b'\0')
+            return True
 
     def set_password(self, old_password, new_password):
         child = pexpect.spawn(
