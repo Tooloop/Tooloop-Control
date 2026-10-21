@@ -13,6 +13,8 @@ from utils.cpu_load import CpuLoad
 from crontab import CronTab
 import configparser
 import sensors
+import atexit
+import threading
 
 
 class System(object):
@@ -20,6 +22,7 @@ class System(object):
 
     def __init__(self, app):
         super(System, self).__init__()
+        print("System controller initialized")
         self.app = app
         self.cpu_load = CpuLoad()
         self.needs_reboot = False
@@ -54,10 +57,29 @@ class System(object):
             }
 
         self.setup_runtime_schedule()
+
+        # Start a separate thread to periodically check the next startup time
+        self.schedule_thread_running = True
+        self.schedule_thread = threading.Thread(
+            target=self.check_next_startup_time)
+        self.schedule_thread.daemon = True
+        self.schedule_thread.start()
+
         sensors.init()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+        # Register the setup_runtime_schedule function to be called at program exit
+        atexit.register(self.cleanup)
+
+    def cleanup(self):
         sensors.cleanup()
+        self.setup_runtime_schedule()
+        try:
+            self.schedule_thread_running = False
+            self.schedule_thread.join(timeout=5)
+            if self.schedule_thread.is_alive():
+                raise RuntimeError("Failed to stop the schedule thread")
+        except RuntimeError as e:
+            print(f"Error stopping the schedule thread: {e}")
 
     def get_hostname(self):
         try:
@@ -443,22 +465,15 @@ class System(object):
                 raise ValueError(
                     "Shutdown minutes must be an integer between 0 and 59")
 
-    # def set_single_schedule(self, which, schedule):
-    #     if which in schedule:
-    #         if 'enabled' in schedule[which]:
-    #             self.runtime_schedule[which]['enabled'] = schedule[which]['enabled']
-    #         if 'type' in schedule[which]:
-    #             if schedule[which]['type'] in ['blackout', 'poweroff']:
-    #                 self.runtime_schedule[which]['type'] = schedule[which]['type']
-    #         if 'weekdays' in schedule[which]:
-    #             self.runtime_schedule[which]['weekdays'] = schedule[which]['weekdays']
-    #         if 'time' in schedule[which]:
-    #             if 'hours' in schedule[which]['time']:
-    #                 self.runtime_schedule[which]['time']['hours'] = int(
-    #                     schedule[which]['time']['hours'])
-    #             if 'minutes' in schedule[which]['time']:
-    #                 self.runtime_schedule[which]['time']['minutes'] = int(
-    #                     schedule[which]['time']['minutes'])
+    def check_next_startup_time(self):
+        while self.schedule_thread_running:
+            next_startup_time = self.get_next_startup_time()
+            if next_startup_time:
+                current_time = datetime_to_unix_time_millis(
+                    datetime.datetime.now())
+                if current_time >= next_startup_time:
+                    self.setup_runtime_schedule()
+            time.sleep(60)  # Check every minute
 
     def setup_runtime_schedule(self):
         crontab = CronTab(user='tooloop')
@@ -474,21 +489,14 @@ class System(object):
         if 'enabled' not in self.runtime_schedule or not isinstance(self.runtime_schedule['enabled'], bool):
             return
 
-        # set start up wakealarm
-        # if self.runtime_schedule['startup']['enabled'] and len(self.runtime_schedule['startup']['weekdays']) > 0:
-        #     if self.runtime_schedule['shutdown']['type'] == 'poweroff':
-        #         # set rtc wake alarm
-        #         call('echo '+str(self.get_next_startup_time()) +
-        #              ' > /sys/class/rtc/rtc0/wakealarm', shell=True)
-        #     elif self.runtime_schedule['shutdown']['type'] == 'blackout':
-        #         # set startup cron job
-        #         job = crontab.new(
-        #             command='env DISPLAY=:0.0 /opt/tooloop/scripts/tooloop-display-on && env DISPLAY=:0.0 /opt/tooloop/scripts/tooloop-presentation-reset')
-        #         job.hour.on(self.runtime_schedule['startup']['time']['hours'])
-        #         job.minute.on(
-        #             self.runtime_schedule['startup']['time']['minutes'])
-        #         job.dow.on(*self.runtime_schedule['startup']['weekdays'])
-        #         crontab.write()
+        # set new start up wakealarm
+        next_startup_time = self.get_next_startup_time()
+        print('next_startup_time', next_startup_time)
+
+        if next_startup_time:
+            # set rtc wake alarm
+            call('echo '+str(next_startup_time) +
+                 ' > /sys/class/rtc/rtc0/wakealarm', shell=True)
 
         # set shutdown cron job
         # if self.runtime_schedule['shutdown']['enabled'] and len(self.runtime_schedule['shutdown']['weekdays']) > 0:
@@ -503,35 +511,48 @@ class System(object):
         #     crontab.write()
 
     def get_next_startup_time(self):
-        pass
-        # # What weeday is today?
-        # weekday = get_iso_weekday()
+        # Get all days with scheduled start up
+        startup_days = [
+            day for day in self.runtime_schedule['schedule'] if day['startup']]
 
-        # # What’s the next weekday to start up?
-        # next_weekday = min(self.runtime_schedule['startup']['weekdays'])
-        # for day in sorted(self.runtime_schedule['startup']['weekdays']):
-        #     if day > weekday:
-        #         next_weekday = day
-        #         break
+        # Return if there are none
+        if not startup_days:
+            return
 
-        # # Create a date of today at start up time
-        # next_startup = datetime.datetime.today().replace(
-        #     hour=self.runtime_schedule['startup']['time']['hours'],
-        #     minute=self.runtime_schedule['startup']['time']['minutes'],
-        #     second=0,
-        #     microsecond=0
-        # )
+        # What’s the next weekday to start up?
+        today = get_iso_weekday()
+        next_startup_day = None
 
-        # # If it is after the daily startup time,
-        # # add the days between today and the next startup day
-        # now = datetime.datetime.now().time()
-        # startup_time = datetime.time(
-        #     hour=self.runtime_schedule['startup']['time']['hours'],
-        #     minute=self.runtime_schedule['startup']['time']['minutes']
-        # )
-        # if now > startup_time:
-        #     delta_days = ((next_weekday + 7) - weekday) % 7
-        #     next_startup += datetime.timedelta(days=delta_days)
+        # Find the next startup day after today
+        for day in sorted(startup_days, key=lambda x: x['num']):
+            if day['num'] > today:
+                next_startup_day = day
+                break
 
-        # # Convert time to unix epoch time (in time utils)
-        # return datetime_to_unix_time_millis(next_startup)
+        # If no startup day found after today, get the first one (next week)
+        if not next_startup_day:
+            next_startup_day = min(startup_days, key=lambda x: x['num'])
+
+        # Calculate the next start up time
+        next_startup = datetime.datetime.now()
+        next_startup = next_startup.replace(hour=next_startup_day['startupTime']['hours'],
+                                            minute=next_startup_day['startupTime']['minutes'],
+                                            second=0, microsecond=0)
+
+        # If the next startup day is today but the time has already passed, set it to next week
+        if next_startup_day['num'] == today and next_startup < datetime.datetime.now():
+            next_startup += datetime.timedelta(days=7)
+
+        # If the next startup day is before today, set it to next week
+        elif next_startup_day['num'] < today:
+            next_startup += datetime.timedelta(
+                days=7 - (today - next_startup_day['num']))
+
+        # If the next startup day is after today, set it to the next occurrence of that day
+        elif next_startup_day['num'] > today:
+            next_startup += datetime.timedelta(
+                days=next_startup_day['num'] - today)
+
+        print('next_startup', next_startup)
+
+        return datetime_to_unix_time_millis(next_startup)
