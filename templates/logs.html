@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Logs{% endblock %}
+
+{% block main %}
+<section class="section">
+    <div id="logs" class="container">
+
+        <h1 class="title">Logs</h1>
+        <h2 class="is-size-5 mb-3" v-if="logs.length == 1">[[ selected ]]</h2>
+
+        <div id="log-browser">
+
+            <div id="file-list" class="menu has-background-light is-hidden-touch is-hidden-tablet-only is-hidden-desktop-only" v-if="logs.length > 1">
+                <ul class="menu-list">
+                    <li v-for="log in logs">
+                        <a :class="{'is-active': selected === log}" @click="selected = log">[[ log ]]</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="select is-hidden-widescreen is-fullwidth mb-3" v-if="logs.length > 1">
+                <select v-model="selected">
+                    <option v-for="log in logs" :value="log">[[log]]</option>
+                </select>
+            </div>
+
+
+            <div id="detail">
+                <div id="buttons"
+                    class="box field is-grouped has-background-dark has-text-light has-text-right p-2 m-3">
+                    <div class="control is-hidden-mobile">
+                        <input id="tail-switch" v-on:change="" v-model="tail" name="tail-switch"
+                            class="switch is-small is-success" type="checkbox" ref="tailSwitch">
+                        <label for="tail-switch">Tail</label>
+                    </div>
+                    <div class="field has-addons">
+                        <div class="control">
+                            <button class="button is-dark is-rounded is-small" @click="copyToClipboard"
+                                title="Copy to clipbard">
+                                <span class="icon is-small">
+                                    <i class="fas fa-copy"></i>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="control">
+                            <button class="button is-dark is-rounded is-small" @click="download" title="Download">
+                                <span class="icon is-small">
+                                    <i class="fas fa-download"></i>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="control">
+                            <button class="button is-dark is-rounded is-small" @click="load(selected)" title="Refresh">
+                                <span class="icon is-small">
+                                    <i class="fas fa-rotate"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="log-content" class="is-family-monospace has-background-dark has-text-light p-5"
+                    ref="logContent">
+                    [[ logContent ]]
+                </div>
+            </div>
+
+        </div>
+</section>
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script>
+    // Initial state from server
+    const logData = {{ logData | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/logs.js') }}"></script>
+{% endblock %}
