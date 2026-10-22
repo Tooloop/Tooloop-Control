@@ -29,28 +29,26 @@ class System(object):
         # read runtime schedule from disk
         try:
             with open(self.runtime_schedule_path) as json_data:
-                schedule = json.load(json_data)
-                self.validate_schedule(schedule)
-                self.runtime_schedule = schedule
+                self.runtime_schedule = json.load(json_data)
         except Exception as e:
             self.runtime_schedule = {
-                'enabled': False,
-                'schedule': [
-                    {'num': 1, 'name': "Mo", 'startup': False, 'startupTime': {
-                        'hours': 10, 'minutes': 0}, 'shutdown': False, 'shutdownTime': {'hours': 17, 'minutes': 0}},
-                    {'num': 2, 'name': "Tu", 'startup': False, 'startupTime': {
-                        'hours': 10, 'minutes': 0}, 'shutdown': False, 'shutdownTime': {'hours': 17, 'minutes': 0}},
-                    {'num': 3, 'name': "We", 'startup': False, 'startupTime': {
-                        'hours': 10, 'minutes': 0}, 'shutdown': False, 'shutdownTime': {'hours': 17, 'minutes': 0}},
-                    {'num': 4, 'name': "Th", 'startup': False, 'startupTime': {
-                        'hours': 10, 'minutes': 0}, 'shutdown': False, 'shutdownTime': {'hours': 17, 'minutes': 0}},
-                    {'num': 5, 'name': "Fr", 'startup': False, 'startupTime': {
-                        'hours': 10, 'minutes': 0}, 'shutdown': False, 'shutdownTime': {'hours': 17, 'minutes': 0}},
-                    {'num': 6, 'name': "Sa", 'startup': False, 'startupTime': {
-                        'hours': 10, 'minutes': 0}, 'shutdown': False, 'shutdownTime': {'hours': 17, 'minutes': 0}},
-                    {'num': 0, 'name': "Su", 'startup': False, 'startupTime': {
-                        'hours': 10, 'minutes': 0}, 'shutdown': False, 'shutdownTime': {'hours': 17, 'minutes': 0}}
-                ]
+                'startup': {
+                    'enabled': False,
+                    'weekdays': [1, 2, 3, 4, 5],
+                    'time': {
+                        'hours': 8,
+                        'minutes': 0
+                    }
+                },
+                'shutdown': {
+                    'enabled': False,
+                    'type': 'poweroff',
+                    'weekdays': [1, 2, 3, 4, 5],
+                    'time': {
+                        'hours': 20,
+                        'minutes': 0
+                    }
+                }
             }
 
         self.setup_runtime_schedule()
@@ -357,108 +355,39 @@ class System(object):
         return self.runtime_schedule
 
     def set_runtime_schedule(self, schedule):
-        try:
-            self.validate_schedule(schedule)
-        except Exception as e:
-            raise e
-
-        # Update the runtime schedule
-        self.runtime_schedule = schedule
-
+        # update data
+        self.set_single_schedule('startup', schedule)
+        self.set_single_schedule('shutdown', schedule)
         # write changes to disk
         try:
             with open(self.runtime_schedule_path, 'w') as json_file:
                 json.dump(self.runtime_schedule, json_file, indent=4)
 
             os.chown(self.runtime_schedule_path,
-                     pwd.getpwnam("tooloop").pw_uid,
-                     pwd.getpwnam("tooloop").pw_gid)
+                 pwd.getpwnam("tooloop").pw_uid,
+                 pwd.getpwnam("tooloop").pw_gid)
         except Exception as e:
             raise e
-
         # set up the rtc wakealarm and cron jobs
         self.setup_runtime_schedule()
 
-    def validate_schedule(self, schedule):
-        if not isinstance(schedule, dict):
-            raise ValueError("Schedule must be a dictionary")
+    def set_single_schedule(self, which, schedule):
 
-        if 'enabled' not in schedule or not isinstance(schedule['enabled'], bool):
-            raise ValueError("Schedule must contain a boolean 'enabled' field")
-
-        if 'schedule' not in schedule or not isinstance(schedule['schedule'], list):
-            raise ValueError("Schedule must contain a 'schedule' list")
-
-        for day_schedule in schedule['schedule']:
-            if not isinstance(day_schedule, dict):
-                raise ValueError("Each day in schedule must be a dictionary")
-
-            required_fields = ['num', 'name', 'startup',
-                               'startupTime', 'shutdown', 'shutdownTime']
-            for field in required_fields:
-                if field not in day_schedule:
-                    raise ValueError(
-                        f"Each day must contain a '{field}' field")
-
-            if not isinstance(day_schedule['num'], int) or day_schedule['num'] < 0 or day_schedule['num'] > 6:
-                raise ValueError(
-                    "Day number must be an integer between 0 and 6")
-
-            if not isinstance(day_schedule['name'], str) or len(day_schedule['name']) != 2:
-                raise ValueError("Day name must be a 2-character string")
-
-            if not isinstance(day_schedule['startup'], bool):
-                raise ValueError("Startup must be a boolean")
-
-            if not isinstance(day_schedule['startupTime'], dict):
-                raise ValueError("Startup time must be a dictionary")
-
-            if 'hours' not in day_schedule['startupTime'] or 'minutes' not in day_schedule['startupTime']:
-                raise ValueError(
-                    "Startup time must contain 'hours' and 'minutes' fields")
-
-            if not isinstance(day_schedule['startupTime']['hours'], int) or day_schedule['startupTime']['hours'] < 0 or day_schedule['startupTime']['hours'] > 23:
-                raise ValueError(
-                    "Startup hours must be an integer between 0 and 23")
-
-            if not isinstance(day_schedule['startupTime']['minutes'], int) or day_schedule['startupTime']['minutes'] < 0 or day_schedule['startupTime']['minutes'] > 59:
-                raise ValueError(
-                    "Startup minutes must be an integer between 0 and 59")
-
-            if not isinstance(day_schedule['shutdown'], bool):
-                raise ValueError("Shutdown must be a boolean")
-
-            if not isinstance(day_schedule['shutdownTime'], dict):
-                raise ValueError("Shutdown time must be a dictionary")
-
-            if 'hours' not in day_schedule['shutdownTime'] or 'minutes' not in day_schedule['shutdownTime']:
-                raise ValueError(
-                    "Shutdown time must contain 'hours' and 'minutes' fields")
-
-            if not isinstance(day_schedule['shutdownTime']['hours'], int) or day_schedule['shutdownTime']['hours'] < 0 or day_schedule['shutdownTime']['hours'] > 23:
-                raise ValueError(
-                    "Shutdown hours must be an integer between 0 and 23")
-
-            if not isinstance(day_schedule['shutdownTime']['minutes'], int) or day_schedule['shutdownTime']['minutes'] < 0 or day_schedule['shutdownTime']['minutes'] > 59:
-                raise ValueError(
-                    "Shutdown minutes must be an integer between 0 and 59")
-
-    # def set_single_schedule(self, which, schedule):
-    #     if which in schedule:
-    #         if 'enabled' in schedule[which]:
-    #             self.runtime_schedule[which]['enabled'] = schedule[which]['enabled']
-    #         if 'type' in schedule[which]:
-    #             if schedule[which]['type'] in ['blackout', 'poweroff']:
-    #                 self.runtime_schedule[which]['type'] = schedule[which]['type']
-    #         if 'weekdays' in schedule[which]:
-    #             self.runtime_schedule[which]['weekdays'] = schedule[which]['weekdays']
-    #         if 'time' in schedule[which]:
-    #             if 'hours' in schedule[which]['time']:
-    #                 self.runtime_schedule[which]['time']['hours'] = int(
-    #                     schedule[which]['time']['hours'])
-    #             if 'minutes' in schedule[which]['time']:
-    #                 self.runtime_schedule[which]['time']['minutes'] = int(
-    #                     schedule[which]['time']['minutes'])
+        if which in schedule:
+            if 'enabled' in schedule[which]:
+                self.runtime_schedule[which]['enabled'] = schedule[which]['enabled']
+            if 'type' in schedule[which]:
+                if schedule[which]['type'] in ['blackout', 'poweroff']:
+                    self.runtime_schedule[which]['type'] = schedule[which]['type']
+            if 'weekdays' in schedule[which]:
+                self.runtime_schedule[which]['weekdays'] = schedule[which]['weekdays']
+            if 'time' in schedule[which]:
+                if 'hours' in schedule[which]['time']:
+                    self.runtime_schedule[which]['time']['hours'] = int(
+                        schedule[which]['time']['hours'])
+                if 'minutes' in schedule[which]['time']:
+                    self.runtime_schedule[which]['time']['minutes'] = int(
+                        schedule[which]['time']['minutes'])
 
     def setup_runtime_schedule(self):
         crontab = CronTab(user='tooloop')
@@ -466,72 +395,69 @@ class System(object):
         # empty wakealarm
         call('echo 0 > /sys/class/rtc/rtc0/wakealarm', shell=True)
 
-        # remove poweroff cron job
+        # remove cron jobs
+        crontab.remove_all(command='display-on')
         crontab.remove_all(command='poweroff')
+        crontab.remove_all(command='blackout')
         crontab.write()
 
-        # return early if schedule is disabled
-        if 'enabled' not in self.runtime_schedule or not isinstance(self.runtime_schedule['enabled'], bool):
-            return
+        # start up
+        if self.runtime_schedule['startup']['enabled'] and len(self.runtime_schedule['startup']['weekdays']) > 0:
+            if self.runtime_schedule['shutdown']['type'] == 'poweroff':
+                # set rtc wake alarm
+                call('echo '+str(self.get_next_startup_time()) +
+                     ' > /sys/class/rtc/rtc0/wakealarm', shell=True)
+            elif self.runtime_schedule['shutdown']['type'] == 'blackout':
+                # set startup cron job
+                job = crontab.new(
+                    command='env DISPLAY=:0.0 /opt/tooloop/scripts/tooloop-display-on && env DISPLAY=:0.0 /opt/tooloop/scripts/tooloop-presentation-reset')
+                job.hour.on(self.runtime_schedule['startup']['time']['hours'])
+                job.minute.on(
+                    self.runtime_schedule['startup']['time']['minutes'])
+                job.dow.on(*self.runtime_schedule['startup']['weekdays'])
+                crontab.write()
 
-        # set start up wakealarm
-        # if self.runtime_schedule['startup']['enabled'] and len(self.runtime_schedule['startup']['weekdays']) > 0:
-        #     if self.runtime_schedule['shutdown']['type'] == 'poweroff':
-        #         # set rtc wake alarm
-        #         call('echo '+str(self.get_next_startup_time()) +
-        #              ' > /sys/class/rtc/rtc0/wakealarm', shell=True)
-        #     elif self.runtime_schedule['shutdown']['type'] == 'blackout':
-        #         # set startup cron job
-        #         job = crontab.new(
-        #             command='env DISPLAY=:0.0 /opt/tooloop/scripts/tooloop-display-on && env DISPLAY=:0.0 /opt/tooloop/scripts/tooloop-presentation-reset')
-        #         job.hour.on(self.runtime_schedule['startup']['time']['hours'])
-        #         job.minute.on(
-        #             self.runtime_schedule['startup']['time']['minutes'])
-        #         job.dow.on(*self.runtime_schedule['startup']['weekdays'])
-        #         crontab.write()
-
-        # set shutdown cron job
-        # if self.runtime_schedule['shutdown']['enabled'] and len(self.runtime_schedule['shutdown']['weekdays']) > 0:
-        #     if self.runtime_schedule['shutdown']['type'] == 'poweroff':
-        #         job = crontab.new(command='sudo poweroff')
-        #     elif self.runtime_schedule['shutdown']['type'] == 'blackout':
-        #         job = crontab.new(
-        #             command='env DISPLAY=:0.0 /opt/tooloop/scripts/tooloop-blackout')
-        #     job.hour.on(self.runtime_schedule['shutdown']['time']['hours'])
-        #     job.minute.on(self.runtime_schedule['shutdown']['time']['minutes'])
-        #     job.dow.on(*self.runtime_schedule['shutdown']['weekdays'])
-        #     crontab.write()
+        # shutdown
+        if self.runtime_schedule['shutdown']['enabled'] and len(self.runtime_schedule['shutdown']['weekdays']) > 0:
+            if self.runtime_schedule['shutdown']['type'] == 'poweroff':
+                job = crontab.new(command='sudo poweroff')
+            elif self.runtime_schedule['shutdown']['type'] == 'blackout':
+                job = crontab.new(
+                    command='env DISPLAY=:0.0 /opt/tooloop/scripts/tooloop-blackout')
+            job.hour.on(self.runtime_schedule['shutdown']['time']['hours'])
+            job.minute.on(self.runtime_schedule['shutdown']['time']['minutes'])
+            job.dow.on(*self.runtime_schedule['shutdown']['weekdays'])
+            crontab.write()
 
     def get_next_startup_time(self):
-        pass
-        # # What weeday is today?
-        # weekday = get_iso_weekday()
+        # What weeday is today?
+        weekday = get_iso_weekday()
 
-        # # What’s the next weekday to start up?
-        # next_weekday = min(self.runtime_schedule['startup']['weekdays'])
-        # for day in sorted(self.runtime_schedule['startup']['weekdays']):
-        #     if day > weekday:
-        #         next_weekday = day
-        #         break
+        # What’s the next weekday to start up?
+        next_weekday = min(self.runtime_schedule['startup']['weekdays'])
+        for day in sorted(self.runtime_schedule['startup']['weekdays']):
+            if day > weekday:
+                next_weekday = day
+                break
 
-        # # Create a date of today at start up time
-        # next_startup = datetime.datetime.today().replace(
-        #     hour=self.runtime_schedule['startup']['time']['hours'],
-        #     minute=self.runtime_schedule['startup']['time']['minutes'],
-        #     second=0,
-        #     microsecond=0
-        # )
+        # Create a date of today at start up time
+        next_startup = datetime.datetime.today().replace(
+            hour=self.runtime_schedule['startup']['time']['hours'],
+            minute=self.runtime_schedule['startup']['time']['minutes'],
+            second=0,
+            microsecond=0
+        )
 
-        # # If it is after the daily startup time,
-        # # add the days between today and the next startup day
-        # now = datetime.datetime.now().time()
-        # startup_time = datetime.time(
-        #     hour=self.runtime_schedule['startup']['time']['hours'],
-        #     minute=self.runtime_schedule['startup']['time']['minutes']
-        # )
-        # if now > startup_time:
-        #     delta_days = ((next_weekday + 7) - weekday) % 7
-        #     next_startup += datetime.timedelta(days=delta_days)
+        # If it is after the daily startup time,
+        # add the days between today and the next startup day
+        now = datetime.datetime.now().time()
+        startup_time = datetime.time(
+            hour=self.runtime_schedule['startup']['time']['hours'],
+            minute=self.runtime_schedule['startup']['time']['minutes']
+        )
+        if now > startup_time:
+            delta_days = ((next_weekday + 7) - weekday) % 7
+            next_startup += datetime.timedelta(days=delta_days)
 
-        # # Convert time to unix epoch time (in time utils)
-        # return datetime_to_unix_time_millis(next_startup)
+        # Convert time to unix epoch time (in time utils)
+        return datetime_to_unix_time_millis(next_startup)
