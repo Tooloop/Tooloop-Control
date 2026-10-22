@@ -8,7 +8,7 @@
     :license: MIT, see LICENSE for more details.
 """
 
-from flask import Flask, jsonify, render_template, request, after_this_request, abort, send_from_directory, make_response, Response
+from flask import Flask, jsonify, render_template, request, after_this_request, abort, send_from_directory, send_file, make_response, Response
 from jinja2 import ChoiceLoader, FileSystemLoader
 
 # import augeas
@@ -29,6 +29,7 @@ from controllers.services_controller import Services
 from controllers.screenshot_controller import Screenshots
 from controllers.network_discovery_controller import NetworkDiscovery
 from controllers.logging_controller import Logging
+from controllers.logs_controller import Logs
 from utils.time_utils import *
 from utils.exceptions import *
 
@@ -47,6 +48,7 @@ logging = Logging(app, system)
 services = Services(app, logging)
 screenshots = Screenshots()
 network_discovery = NetworkDiscovery()
+logs = Logs()
 
 
 # ------------------------------------------------------------------------------
@@ -104,7 +106,7 @@ def render_services():
 def render_system():
     return render_template('system.html',
                            page='system',
-                           os_version="22.04",
+                           os_version="24.04",
                            servers=network_discovery.get_servers(),
                            hostname=system.get_hostname(),
                            ip_address=system.get_ip(),
@@ -115,6 +117,14 @@ def render_system():
                            ssh_running=services.is_ssh_running(),
                            vnc_running=services.is_vnc_running(),
                            runtime_schedule=system.get_runtime_schedule(),
+                           )
+
+
+@app.route("/logs")
+def render_logs():
+    return render_template('logs.html',
+                           page='logs',
+                           logData=logs.get_logs()
                            )
 
 
@@ -592,6 +602,27 @@ def appcenter_progress():
 @app.route('/tooloop/api/v1.0/networkdiscovery/servers', methods=['GET'])
 def get_servers():
     return jsonify(network_discovery.get_servers())
+
+
+# logs
+
+@app.route('/tooloop/api/v1.0/logs', methods=['GET'])
+def get_logs():
+    return jsonify(logs.get_logs())
+
+
+@app.route('/tooloop/api/v1.0/logs/<string:filename>', methods=['GET'])
+def get_log(filename):
+    return jsonify(logs.get_log(filename))
+
+
+@app.route('/tooloop/api/v1.0/logs/download/<string:filename>', methods=['GET'])
+def download_log(filename):
+    try:
+        path = logs.get_path(filename)
+        return send_file(path, as_attachment=True)
+    except FileNotFoundError:
+        abort(404, jsonify({'error': 'File not found'}))
 
 
 # ------------------------------------------------------------------------------
